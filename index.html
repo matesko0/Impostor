@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Impostor Online</title>
     <style>
@@ -20,8 +19,8 @@
     
     <div id="screen-login" class="flex-1 flex flex-col justify-center space-y-6 fade-in">
         <div class="text-center">
-            <h1 class="text-5xl font-black text-indigo-500 mb-2 tracking-tighter italic">IMPOSTOR</h1>
-            <p class="text-slate-500 uppercase tracking-widest text-xs font-bold">Online Multiplayer</p>
+            <h1 class="text-5xl font-black text-indigo-500 mb-2 tracking-tighter">IMPOSTOR</h1>
+            <p class="text-slate-500 uppercase tracking-widest text-xs font-bold italic">Online Edition</p>
         </div>
         <div class="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 space-y-4">
             <input type="text" id="user-name" placeholder="Tvoje jméno..." 
@@ -29,7 +28,7 @@
             <input type="text" id="room-id" placeholder="Místnost (např. Pivo)" 
                 class="w-full bg-slate-800 border-none rounded-2xl p-4 text-lg outline-none focus:ring-2 focus:ring-indigo-500 uppercase text-white font-mono">
             <div class="grid grid-cols-2 gap-3 pt-2">
-                <button onclick="window.joinRoom(true)" class="bg-indigo-600 p-4 rounded-2xl font-bold active:scale-95 transition-all">ZALOŽIT</button>
+                <button onclick="window.joinRoom(true)" class="bg-indigo-600 p-4 rounded-2xl font-bold active:scale-95 transition-all shadow-lg shadow-indigo-500/20">ZALOŽIT</button>
                 <button onclick="window.joinRoom(false)" class="bg-slate-800 p-4 rounded-2xl font-bold active:scale-95 transition-all border border-slate-700">PŘIPOJIT</button>
             </div>
         </div>
@@ -42,33 +41,35 @@
         </div>
         
         <div class="flex-1 space-y-4 overflow-y-auto">
-            <h3 class="text-sm font-bold text-slate-500 px-2 uppercase italic">Hráči v lobby:</h3>
+            <h3 class="text-sm font-bold text-slate-500 px-2 uppercase">Hráči (min. 3):</h3>
             <ul id="online-player-list" class="space-y-2"></ul>
         </div>
 
-        <div class="pt-6 space-y-4">
+        <div id="lobby-footer" class="space-y-4 pt-6">
             <button id="host-start-btn" onclick="window.triggerGameStart()" 
-                class="hidden w-full bg-emerald-600 p-5 rounded-3xl font-black text-xl shadow-xl shadow-emerald-900/20 active:scale-95 transition-all">
+                class="hidden w-full bg-emerald-600 p-5 rounded-3xl font-black text-xl shadow-xl active:scale-95 transition-all">
                 START HRY
             </button>
-            <p id="wait-msg" class="text-center text-slate-500 italic text-sm py-4">Čekáme, až hostitel spustí hru...</p>
+            <p id="wait-msg" class="text-center text-slate-500 italic text-sm py-4">Čekáme na hostitele...</p>
         </div>
     </div>
 
     <div id="screen-game" class="hidden flex-1 flex flex-col justify-center py-6 fade-in text-center">
         <div class="bg-slate-900/80 p-8 rounded-[40px] border border-slate-800 space-y-8 shadow-2xl">
             <div id="reveal-controls">
-                <h2 id="player-turn-name" class="text-3xl font-black mb-2">---</h2>
-                <p class="text-indigo-400 font-bold uppercase text-xs tracking-widest mb-6 italic">Tvá role v tomto kole</p>
-                <button onclick="window.revealMyRole()" class="w-full h-40 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl text-xl font-black shadow-2xl shadow-indigo-500/20 active:scale-95 transition-all uppercase tracking-tighter">
-                    TAPNI PRO <br>ODHALENÍ
+                <span class="text-indigo-400 font-bold uppercase text-xs tracking-widest mb-2 block">Kolo začalo</span>
+                <h2 id="player-turn-name" class="text-4xl font-black mb-6">---</h2>
+                <button onclick="window.revealMyRole()" class="w-full h-40 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl text-xl font-black shadow-2xl active:scale-95 transition-all">
+                    TAPNI PRO <br>ZOBRAZENÍ ROLE
                 </button>
             </div>
             
-            <div id="role-info" class="hidden py-4 animate-in zoom-in duration-300">
+            <div id="role-info" class="hidden py-4">
                 <p id="role-label" class="text-slate-500 text-xs uppercase font-bold mb-2"></p>
-                <div id="role-word" class="text-5xl font-black mb-8 tracking-tighter">---</div>
-                <p class="text-slate-400 text-sm leading-relaxed">Teď mluvte a hledejte impostora! <br>Ten má jen nápovědu.</p>
+                <div id="role-word" class="text-5xl font-black mb-8 tracking-tighter italic">---</div>
+                <p class="text-slate-400 text-sm leading-relaxed px-4 text-center">
+                    Diskutujte! Hledejte toho, kdo má nápovědu místo slova.
+                </p>
             </div>
         </div>
         <button id="host-reset-btn" onclick="window.triggerGameStart()" class="hidden mt-8 w-full bg-slate-800 py-4 rounded-2xl font-bold border border-slate-700 active:scale-95 transition-all">DALŠÍ KOLO</button>
@@ -77,11 +78,10 @@
 </div>
 
 <script type="module">
-    // Firebase SDK z tvé verze (přidaná Database)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
-    // TVÁ KONFIGURACE, KTEROU JSI POSLAL
+    // Konfigurace z tvého Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyA7CZjBnw597T5IsC00-2iAcuVdqegq7wU",
         authDomain: "impos-9d3d4.firebaseapp.com",
@@ -96,8 +96,12 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let myId = localStorage.getItem('impostor_uid') || Math.random().toString(36).substring(7);
-    localStorage.setItem('impostor_uid', myId);
+    // UNIKÁTNÍ IDENTIFIKACE ZAŘÍZENÍ
+    let myId = localStorage.getItem('impostor_uid');
+    if (!myId) {
+        myId = 'user_' + Math.random().toString(36).substring(2, 11);
+        localStorage.setItem('impostor_uid', myId);
+    }
     
     let myName = localStorage.getItem('impostor_name') || '';
     let myRoom = '';
@@ -105,7 +109,6 @@
 
     document.getElementById('user-name').value = myName;
 
-    // DATA: Téma Věci (Items)
     const items = [
         { word: "Kladivo", hint: "Nářadí" }, { word: "Pánvička", hint: "Kuchyně" }, 
         { word: "Notebook", hint: "Elektronika" }, { word: "Postel", hint: "Nábytek" },
@@ -118,25 +121,27 @@
     ];
 
     window.joinRoom = function(create) {
-        myName = document.getElementById('user-name').value.trim();
-        myRoom = document.getElementById('room-id').value.trim().toUpperCase();
+        const nameInput = document.getElementById('user-name').value.trim();
+        const roomInput = document.getElementById('room-id').value.trim().toUpperCase();
         
-        if (!myName || !myRoom) return alert("Doplň jméno a místnost!");
+        if (!nameInput || !roomInput) return alert("Doplň jméno a kód místnosti!");
         
+        myName = nameInput;
+        myRoom = roomInput;
         localStorage.setItem('impostor_name', myName);
         isHost = create;
 
-        const roomRef = ref(db, 'rooms/' + myRoom);
-        
         if (isHost) {
-            set(roomRef, {
+            // Hostitel založí místnost, ale nepoužije set na celou cestu rooms
+            update(ref(db, 'rooms/' + myRoom), {
                 status: 'lobby',
                 hostId: myId,
                 createdAt: Date.now()
             });
         }
 
-        set(ref(db, 'rooms/' + myRoom + '/players/' + myId), {
+        // Každý se zapíše pod svým unikátním ID do seznamu hráčů
+        update(ref(db, 'rooms/' + myRoom + '/players/' + myId), {
             name: myName,
             id: myId
         });
@@ -153,15 +158,16 @@
             const players = data.players || {};
             const playerArray = Object.values(players);
             
-            // List hráčů v reálném čase
-            document.getElementById('online-player-list').innerHTML = playerArray.map(p => `
-                <li class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex justify-between items-center fade-in">
-                    <span class="font-bold tracking-tight">${p.id === data.hostId ? '👑 ' : ''}${p.name}</span>
-                    <span class="text-[10px] text-slate-600 font-mono tracking-widest">${p.id === myId ? 'TY' : 'ONLINE'}</span>
+            // Renderování seznamu hráčů
+            const listUI = document.getElementById('online-player-list');
+            listUI.innerHTML = playerArray.map(p => `
+                <li class="bg-slate-900 border ${p.id === myId ? 'border-indigo-500' : 'border-slate-800'} p-4 rounded-2xl flex justify-between items-center fade-in">
+                    <span class="font-bold">${p.id === data.hostId ? '👑 ' : ''}${p.name}</span>
+                    <span class="text-[10px] text-slate-500 font-bold">${p.id === myId ? 'TY' : 'HRÁČ'}</span>
                 </li>
             `).join('');
 
-            // Přepínání obrazovek
+            // Přepínání stavů
             if (data.status === 'lobby') {
                 showScreen('screen-lobby');
                 document.getElementById('host-start-btn').classList.toggle('hidden', myId !== data.hostId || playerArray.length < 3);
