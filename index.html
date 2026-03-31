@@ -1,10 +1,3 @@
-Tohle je klasická past při práci s databázemi v reálném čase! Děje se to proto, že když se někdo nový připojí do rozjeté hry, Firebase automaticky pošle všem v místnosti "čerstvá data". A tvůj mobil si řekl: *"Aha, přišla data, tak já ten text na obrazovce radši přepíšu zpátky na jméno hráče"*, i když ty už jsi dávno kliknul na "ROZUMÍM".
-
-Oprava je vlastně hrozně jednoduchá. Musíme tomu kódu říct, ať ti na ty texty a tlačítka nesahá, pokud se zrovna nezačalo úplně nové kolo. Zároveň jsem vylepšil to "Rozumím" – po odkliknutí ti to jasně napíše, že probíhá diskuze.
-
-Tady je finální opravený `index.html`. Stačí to celé přepsat:
-
-```html
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -59,7 +52,7 @@ Tady je finální opravený `index.html`. Stačí to celé přepsat:
             <button onclick="window.addLocalPlayer()" class="bg-indigo-600 px-5 py-2 rounded-xl font-bold active:scale-95">PŘIDAT</button>
         </div>
         <ul id="local-player-list" class="flex-1 space-y-2 overflow-y-auto mb-6"></ul>
-        <button id="local-start-btn" onclick="window.startLocalGame()" class="hidden w-full bg-emerald-600 p-5 rounded-3xl font-black text-xl shadow-xl active:scale-95 transition-all uppercase">START HRY</button>
+        <button id="local-start-btn" onclick="window.startLocalGame()" class="hidden w-full bg-emerald-600 p-5 rounded-3xl font-black text-xl shadow-xl active:scale-95 transition-all uppercase text-white">START HRY</button>
     </div>
 
     <div id="screen-lobby" class="hidden flex-1 flex flex-col py-6 fade-in">
@@ -72,7 +65,7 @@ Tady je finální opravený `index.html`. Stačí to celé přepsat:
         </div>
         <ul id="online-player-list" class="flex-1 space-y-2 overflow-y-auto"></ul>
         <div id="lobby-footer" class="pt-6">
-            <button id="host-start-btn" onclick="window.triggerGameStart()" class="hidden w-full bg-emerald-600 p-5 rounded-3xl font-black text-xl shadow-xl active:scale-95 transition-all">START HRY</button>
+            <button id="host-start-btn" onclick="window.triggerGameStart()" class="hidden w-full bg-emerald-600 p-5 rounded-3xl font-black text-xl shadow-xl active:scale-95 transition-all text-white">START HRY</button>
             <p id="wait-msg" class="text-center text-slate-500 italic text-sm py-4">Čekáme na hostitele...</p>
         </div>
     </div>
@@ -89,7 +82,7 @@ Tady je finální opravený `index.html`. Stačí to celé přepsat:
             <div class="bg-slate-900/80 p-8 rounded-[40px] border border-slate-800 space-y-8 shadow-2xl">
                 <span class="text-indigo-400 font-bold uppercase text-xs tracking-widest block" id="turn-subtitle">Na řadě je</span>
                 <h2 id="player-turn-name" class="text-4xl font-black mb-6">---</h2>
-                <button id="reveal-btn" onclick="window.revealMyRole()" class="w-full h-40 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl text-xl font-black active:scale-95 transition-all uppercase shadow-xl shadow-indigo-500/20">TAPNI PRO ROLI</button>
+                <button id="reveal-btn" onclick="window.revealMyRole()" class="w-full h-40 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl text-xl font-black active:scale-95 transition-all uppercase shadow-xl shadow-indigo-500/20 text-white">TAPNI PRO ROLI</button>
                 <div id="role-info" class="hidden py-4">
                     <p id="role-label" class="text-slate-500 text-xs uppercase font-bold mb-2"></p>
                     <div id="role-word" class="text-5xl font-black mb-8 tracking-tighter italic">---</div>
@@ -128,6 +121,7 @@ Tady je finální opravený `index.html`. Stačí to celé přepsat:
     let myRoom = '';
     let localPlayers = JSON.parse(localStorage.getItem('impostor_local_players')) || [];
     let localTurnIndex = 0;
+    let hasFinishedReveal = false; // Pojišťka pro zachování stavu po kliknutí na Rozumím
 
     const items = [
         { word: "Kladivo", hint: "Nářadí" }, { word: "Pánvička", hint: "Kuchyně" }, 
@@ -149,7 +143,6 @@ Tady je finální opravený `index.html`. Stačí to celé přepsat:
         if (!isOnline) window.renderLocalPlayers();
     };
 
-    // --- LOKÁLNÍ HRA ---
     window.addLocalPlayer = () => {
         const input = document.getElementById('local-player-name');
         if (input.value.trim()) {
@@ -182,6 +175,7 @@ Tady je finální opravený `index.html`. Stačí to celé přepsat:
         const impIdx = Math.floor(Math.random() * localPlayers.length);
         window.currentGameState = { impostorId: impIdx, word: item.word, hint: item.hint };
         localTurnIndex = 0;
+        hasFinishedReveal = false;
         
         document.getElementById('wait-for-round').classList.add('hidden');
         document.getElementById('game-active-ui').classList.remove('hidden');
@@ -198,7 +192,6 @@ Tady je finální opravený `index.html`. Stačí to celé přepsat:
         document.getElementById('role-info').classList.add('hidden');
     };
 
-    // --- ONLINE HRA ---
     window.joinRoom = async (create) => {
         const name = document.getElementById('user-name').value.trim();
         const room = document.getElementById('room-id').value.trim().toUpperCase();
@@ -257,13 +250,18 @@ Tady je finální opravený `index.html`. Stačí to celé přepsat:
                     
                     document.getElementById('host-reset-btn').classList.toggle('hidden', !isHost);
                     
-                    // ZDE JE OPRAVA: Resetujeme UI hráče pouze tehdy, pokud je to skutečně nové kolo.
-                    // Pokud se jen někdo připojil do místnosti uprostřed hry, necháme UI v klidu.
+                    // UI se resetuje na "Tapni pro roli" jen při novém kole
                     if (isNewRound) {
+                        hasFinishedReveal = false;
                         document.getElementById('turn-subtitle').innerText = "Tvoje role";
                         document.getElementById('player-turn-name').innerText = data.players[myId].name;
                         document.getElementById('reveal-btn').classList.remove('hidden');
                         document.getElementById('role-info').classList.add('hidden');
+                    } else if (hasFinishedReveal) {
+                        // Pokud už hráč dříve kliknul na Rozumím, udržíme stav Diskuze i po update dat
+                        document.getElementById('role-info').classList.add('hidden');
+                        document.getElementById('turn-subtitle').innerText = "Diskuze";
+                        document.getElementById('player-turn-name').innerText = "Hledejte impostora...";
                     }
                 }
             }
@@ -286,7 +284,6 @@ Tady je finální opravený `index.html`. Stačí to celé přepsat:
         });
     };
 
-    // --- SDÍLENÁ LOGIKA ---
     window.revealMyRole = () => {
         const state = window.currentGameState;
         const isImp = isOnline ? (myId === state.impostorId) : (localTurnIndex === state.impostorId);
@@ -298,10 +295,12 @@ Tady je finální opravený `index.html`. Stačí to celé přepsat:
     };
 
     window.finishReveal = () => {
+        hasFinishedReveal = true;
         if (!isOnline) {
             localTurnIndex++;
             if (localTurnIndex < localPlayers.length) {
                 window.updateLocalTurn();
+                hasFinishedReveal = false;
             } else {
                 document.getElementById('turn-subtitle').innerText = "Všichni znají role";
                 document.getElementById('player-turn-name').innerText = "Hra běží! 🕵️‍♂️";
@@ -309,7 +308,6 @@ Tady je finální opravený `index.html`. Stačí to celé přepsat:
                 document.getElementById('local-lobby-btn').classList.remove('hidden');
             }
         } else {
-            // ZDE JE OPRAVA PRO ONLINE: Nastavíme jasný text a schováme informace.
             document.getElementById('role-info').classList.add('hidden');
             document.getElementById('turn-subtitle').innerText = "Diskuze";
             document.getElementById('player-turn-name').innerText = "Hledejte impostora...";
@@ -329,4 +327,3 @@ Tady je finální opravený `index.html`. Stačí to celé přepsat:
 </script>
 </body>
 </html>
-```
