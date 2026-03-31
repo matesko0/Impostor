@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Impostor PWA</title>
+    <style>
+        :root { --primary: #007aff; --success: #34c759; --danger: #ff3b30; --bg: #000000; --card: #1c1c1e; --text: #ffffff; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        body { font-family: -apple-system, system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; min-height: 100vh; padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom) 20px; }
+        #game-container { flex: 1; display: flex; flex-direction: column; max-width: 500px; margin: 0 auto; width: 100%; justify-content: center; }
+        .card { background: var(--card); padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; }
+        input { width: 100%; padding: 18px; margin: 15px 0; border: none; border-radius: 15px; background: #2c2c2e; color: white; font-size: 17px; user-select: text; }
+        button { width: 100%; padding: 18px; margin: 10px 0; border: none; border-radius: 15px; font-weight: 600; font-size: 18px; transition: transform 0.1s; }
+        button:active { transform: scale(0.96); opacity: 0.8; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-reveal { background: linear-gradient(135deg, #5856d6, #af52de); height: 180px; font-size: 22px; }
+        .hidden { display: none; }
+        ul { list-style: none; padding: 0; margin: 20px 0; max-height: 200px; overflow-y: auto; }
+        li { background: #2c2c2e; padding: 12px; margin-bottom: 6px; border-radius: 12px; text-align: left; }
+        .word-box { font-size: 35px; font-weight: 800; margin: 30px 0; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="setup-screen" class="card">
+        <h1>Impostor</h1>
+        <input type="text" id="player-name" placeholder="Jméno hráče..." autocomplete="off">
+        <button class="btn-primary" onclick="addPlayer()">Přidat</button>
+        <ul id="player-list"></ul>
+        <button class="btn-success hidden" id="start-btn" onclick="startGame()">START</button>
+    </div>
+
+    <div id="reveal-screen" class="card hidden">
+        <p id="turn-info">Na řadě je</p>
+        <h2 id="turn-name">---</h2>
+        <button class="btn-reveal" id="reveal-btn" onclick="toggleWord()">UKÁZAT SLOVO</button>
+        <div id="word-display" class="hidden">
+            <div class="word-box" id="word-text"></div>
+            <button class="btn-primary" onclick="nextTurn()">HOTOVO</button>
+        </div>
+    </div>
+
+    <div id="play-screen" class="card hidden">
+        <h2>Hra běží! 🕵️‍♂️</h2>
+        <p>Najděte vetřelce mezi vámi.</p>
+        <button class="btn-primary" onclick="location.reload()">Nová hra</button>
+    </div>
+</div>
+
+<script>
+    let players = [];
+    let impostorIndex = -1;
+    let currentIndex = 0;
+    const wordPairs = [
+        { normal: "Pivo", impostor: "Víno" },
+        { normal: "Hokej", impostor: "Fotbal" },
+        { normal: "Instagram", impostor: "TikTok" },
+        { normal: "Kofola", impostor: "Cola" },
+        { normal: "iPhone", impostor: "Android" },
+        { normal: "Káva", impostor: "Čaj" }
+    ];
+    let currentPair = {};
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+
+    function addPlayer() {
+        const input = document.getElementById('player-name');
+        if (input.value.trim()) {
+            players.push(input.value.trim());
+            input.value = '';
+            document.getElementById('player-list').innerHTML = players.map(p => `<li>👤 ${p}</li>`).join('');
+            if (players.length >= 3) document.getElementById('start-btn').classList.remove('hidden');
+        }
+    }
+
+    function startGame() {
+        impostorIndex = Math.floor(Math.random() * players.length);
+        currentPair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('reveal-screen').classList.remove('hidden');
+        updateTurn();
+    }
+
+    function updateTurn() {
+        document.getElementById('turn-name').innerText = players[currentIndex];
+        document.getElementById('word-display').classList.add('hidden');
+        document.getElementById('reveal-btn').classList.remove('hidden');
+    }
+
+    function toggleWord() {
+        const isImpostor = currentIndex === impostorIndex;
+        const text = document.getElementById('word-text');
+        text.innerText = isImpostor ? currentPair.impostor : currentPair.normal;
+        text.style.color = isImpostor ? 'var(--danger)' : 'var(--success)';
+        document.getElementById('word-display').classList.remove('hidden');
+        document.getElementById('reveal-btn').classList.add('hidden');
+    }
+
+    function nextTurn() {
+        currentIndex++;
+        if (currentIndex < players.length) updateTurn();
+        else {
+            document.getElementById('reveal-screen').classList.add('hidden');
+            document.getElementById('play-screen').classList.remove('hidden');
+        }
+    }
+</script>
+</body>
+</html>
