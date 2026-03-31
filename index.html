@@ -78,19 +78,41 @@
             <button onclick="window.leaveRoom()" class="text-rose-500 uppercase font-bold text-sm tracking-widest bg-slate-900 border border-slate-800 px-6 py-4 rounded-2xl active:scale-95">Opustit místnost</button>
         </div>
 
-        <div id="game-active-ui" class="space-y-8">
-            <div class="bg-slate-900/80 p-8 rounded-[40px] border border-slate-800 space-y-8 shadow-2xl">
-                <span class="text-indigo-400 font-bold uppercase text-xs tracking-widest block" id="turn-subtitle">Na řadě je</span>
+        <div id="game-active-ui" class="space-y-6">
+            <div class="bg-slate-900/80 p-8 rounded-[40px] border border-slate-800 shadow-2xl min-h-[300px] flex flex-col justify-center">
+                <span class="text-indigo-400 font-bold uppercase text-xs tracking-widest block mb-4" id="turn-subtitle">Na řadě je</span>
                 <h2 id="player-turn-name" class="text-4xl font-black mb-6">---</h2>
-                <button id="reveal-btn" onclick="window.revealMyRole()" class="w-full h-40 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl text-xl font-black active:scale-95 transition-all uppercase shadow-xl shadow-indigo-500/20 text-white">TAPNI PRO ROLI</button>
+                
+                <button id="reveal-btn" onclick="window.revealMyRole()" class="w-full h-40 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl text-xl font-black active:scale-95 transition-all uppercase shadow-xl text-white">TAPNI PRO ROLI</button>
+                
                 <div id="role-info" class="hidden py-4">
                     <p id="role-label" class="text-slate-500 text-xs uppercase font-bold mb-2"></p>
                     <div id="role-word" class="text-5xl font-black mb-8 tracking-tighter italic">---</div>
                     <button onclick="window.finishReveal()" class="w-full bg-slate-100 text-slate-950 font-black py-5 rounded-2xl active:scale-95 transition-all">ROZUMÍM</button>
                 </div>
+
+                <div id="discussion-ui" class="hidden py-4">
+                    <p class="text-emerald-400 font-bold uppercase tracking-widest text-sm mb-2">Začíná mluvit:</p>
+                    <h3 id="starting-player-name" class="text-4xl font-black text-white mb-6">---</h3>
+                    <button id="host-end-round-btn" onclick="window.endRound()" class="hidden w-full bg-rose-600/20 text-rose-500 border border-rose-600/50 font-black py-4 rounded-2xl active:scale-95 transition-all uppercase text-sm tracking-widest mt-6">ODHALIT IMPOSTORA</button>
+                    <button id="local-end-round-btn" onclick="window.revealLocalImpostor()" class="hidden w-full bg-rose-600/20 text-rose-500 border border-rose-600/50 font-black py-4 rounded-2xl active:scale-95 transition-all uppercase text-sm tracking-widest mt-6">ODHALIT IMPOSTORA</button>
+                </div>
+
+                <div id="end-round-ui" class="hidden py-4">
+                    <p class="text-rose-500 font-bold uppercase tracking-widest text-sm mb-2">Impostor byl</p>
+                    <h3 id="impostor-name-display" class="text-5xl font-black text-white mb-8">---</h3>
+                    <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                        <p class="text-slate-400 text-xs uppercase font-bold mb-1">Hledané slovo</p>
+                        <p id="revealed-word" class="text-2xl font-black text-emerald-400">---</p>
+                    </div>
+                </div>
             </div>
-            <button id="host-reset-btn" onclick="window.triggerGameStart()" class="hidden w-full bg-slate-800 py-4 rounded-2xl font-bold border border-slate-700 active:scale-95">DALŠÍ KOLO</button>
-            <button id="local-lobby-btn" onclick="window.showScreen('screen-local-setup')" class="hidden w-full bg-slate-800 py-4 rounded-2xl font-bold border border-slate-700 active:scale-95">ZPĚT DO LOBBY</button>
+
+            <button id="host-reset-btn" onclick="window.triggerGameStart()" class="hidden w-full bg-emerald-600 py-5 rounded-3xl font-black border border-emerald-500 active:scale-95 shadow-lg shadow-emerald-600/20">NOVÁ HRA</button>
+            <div id="local-footer-btns" class="hidden flex gap-3">
+                <button onclick="window.showScreen('screen-local-setup')" class="flex-1 bg-slate-800 py-4 rounded-2xl font-bold border border-slate-700 active:scale-95 text-sm">LOBBY</button>
+                <button onclick="window.startLocalGame()" class="flex-1 bg-emerald-600 py-4 rounded-2xl font-black border border-emerald-500 active:scale-95 text-sm shadow-lg shadow-emerald-600/20">NOVÁ HRA</button>
+            </div>
         </div>
     </div>
 
@@ -121,7 +143,7 @@
     let myRoom = '';
     let localPlayers = JSON.parse(localStorage.getItem('impostor_local_players')) || [];
     let localTurnIndex = 0;
-    let hasFinishedReveal = false; // Pojišťka pro zachování stavu po kliknutí na Rozumím
+    let hasFinishedReveal = false;
 
     const items = [
         { word: "Kladivo", hint: "Nářadí" }, { word: "Pánvička", hint: "Kuchyně" }, 
@@ -143,6 +165,7 @@
         if (!isOnline) window.renderLocalPlayers();
     };
 
+    // --- LOKÁLNÍ HRA ---
     window.addLocalPlayer = () => {
         const input = document.getElementById('local-player-name');
         if (input.value.trim()) {
@@ -172,14 +195,20 @@
 
     window.startLocalGame = () => {
         const item = items[Math.floor(Math.random() * items.length)];
-        const impIdx = Math.floor(Math.random() * localPlayers.length);
-        window.currentGameState = { impostorId: impIdx, word: item.word, hint: item.hint };
+        window.currentGameState = { 
+            impostorId: Math.floor(Math.random() * localPlayers.length), 
+            startingPlayerIndex: Math.floor(Math.random() * localPlayers.length),
+            word: item.word, 
+            hint: item.hint 
+        };
         localTurnIndex = 0;
         hasFinishedReveal = false;
         
         document.getElementById('wait-for-round').classList.add('hidden');
         document.getElementById('game-active-ui').classList.remove('hidden');
-        document.getElementById('local-lobby-btn').classList.add('hidden');
+        document.getElementById('local-footer-btns').classList.add('hidden');
+        document.getElementById('end-round-ui').classList.add('hidden');
+        document.getElementById('discussion-ui').classList.add('hidden');
         
         window.showScreen('screen-game');
         window.updateLocalTurn();
@@ -191,6 +220,30 @@
         document.getElementById('reveal-btn').classList.remove('hidden');
         document.getElementById('role-info').classList.add('hidden');
     };
+
+    window.revealLocalImpostor = () => {
+        document.getElementById('discussion-ui').classList.add('hidden');
+        document.getElementById('turn-subtitle').innerText = "Konec kola";
+        document.getElementById('player-turn-name').innerText = "Výsledek";
+        
+        document.getElementById('end-round-ui').classList.remove('hidden');
+        document.getElementById('impostor-name-display').innerText = localPlayers[window.currentGameState.impostorId];
+        document.getElementById('revealed-word').innerText = window.currentGameState.word;
+        
+        document.getElementById('local-footer-btns').classList.remove('hidden');
+    };
+
+    // --- ONLINE HRA ---
+    
+    // Sledování online statusu
+    const connectedRef = ref(db, '.info/connected');
+    onValue(connectedRef, (snap) => {
+        if (snap.val() === true && myRoom && isOnline) {
+            const myPlayerRef = ref(db, 'rooms/' + myRoom + '/players/' + myId);
+            update(myPlayerRef, { isOnline: true });
+            onDisconnect(myPlayerRef).update({ isOnline: false });
+        }
+    });
 
     window.joinRoom = async (create) => {
         const name = document.getElementById('user-name').value.trim();
@@ -209,8 +262,9 @@
         if (create) await update(roomRef, { status: 'lobby', hostId: myId, createdAt: Date.now() });
         
         const myPlayerRef = ref(db, 'rooms/' + myRoom + '/players/' + myId);
-        await update(myPlayerRef, { name, id: myId });
-        onDisconnect(myPlayerRef).remove();
+        await update(myPlayerRef, { name, id: myId, isOnline: true });
+        onDisconnect(myPlayerRef).update({ isOnline: false });
+        
         listenToRoom();
     };
 
@@ -223,12 +277,16 @@
             const data = snap.val();
             if (!data || !data.players || !data.players[myId]) return window.resetUI();
 
-            const pArray = Object.values(data.players);
+            const playersData = data.players;
+            const pArray = Object.values(playersData);
             const isHost = (data.hostId === myId);
 
             document.getElementById('online-player-list').innerHTML = pArray.map(p => `
                 <li class="bg-slate-900 border ${p.id === myId ? 'border-indigo-500' : 'border-slate-800'} p-4 rounded-xl flex justify-between items-center fade-in">
-                    <span>${p.id === data.hostId ? '👑 ' : ''}${p.name}</span>
+                    <div class="flex items-center gap-3">
+                        <span class="w-2 h-2 rounded-full ${p.isOnline ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-rose-500/50'}"></span>
+                        <span class="${p.isOnline ? 'text-white' : 'text-slate-500'} font-bold">${p.id === data.hostId ? '👑 ' : ''}${p.name}</span>
+                    </div>
                     ${isHost && p.id !== myId ? `<button onclick="window.kickPlayer('${p.id}')" class="text-rose-500 font-bold px-4 py-2 bg-slate-950 rounded-lg">×</button>` : ''}
                 </li>`).join('');
 
@@ -248,20 +306,44 @@
                     const isNewRound = !window.currentGameState || window.currentGameState.roundId !== data.gameState.roundId;
                     window.currentGameState = data.gameState;
                     
-                    document.getElementById('host-reset-btn').classList.toggle('hidden', !isHost);
-                    
-                    // UI se resetuje na "Tapni pro roli" jen při novém kole
-                    if (isNewRound) {
-                        hasFinishedReveal = false;
-                        document.getElementById('turn-subtitle').innerText = "Tvoje role";
-                        document.getElementById('player-turn-name').innerText = data.players[myId].name;
-                        document.getElementById('reveal-btn').classList.remove('hidden');
+                    if (data.gameState.isRevealed) {
+                        // FÁZE 3: Odhalení Impostora
+                        document.getElementById('reveal-btn').classList.add('hidden');
                         document.getElementById('role-info').classList.add('hidden');
-                    } else if (hasFinishedReveal) {
-                        // Pokud už hráč dříve kliknul na Rozumím, udržíme stav Diskuze i po update dat
-                        document.getElementById('role-info').classList.add('hidden');
-                        document.getElementById('turn-subtitle').innerText = "Diskuze";
-                        document.getElementById('player-turn-name').innerText = "Hledejte impostora...";
+                        document.getElementById('discussion-ui').classList.add('hidden');
+                        document.getElementById('host-end-round-btn').classList.add('hidden');
+                        
+                        document.getElementById('turn-subtitle').innerText = "Konec kola";
+                        document.getElementById('player-turn-name').innerText = "Výsledek";
+                        
+                        document.getElementById('end-round-ui').classList.remove('hidden');
+                        document.getElementById('impostor-name-display').innerText = playersData[data.gameState.impostorId].name;
+                        document.getElementById('revealed-word').innerText = data.gameState.word;
+                        
+                        document.getElementById('host-reset-btn').classList.toggle('hidden', !isHost);
+                    } else {
+                        document.getElementById('end-round-ui').classList.add('hidden');
+                        document.getElementById('host-reset-btn').classList.add('hidden');
+                        document.getElementById('host-end-round-btn').classList.toggle('hidden', !isHost);
+                        
+                        if (isNewRound) {
+                            // FÁZE 1: Zjišťování rolí
+                            hasFinishedReveal = false;
+                            document.getElementById('turn-subtitle').innerText = "Tvoje role";
+                            document.getElementById('player-turn-name').innerText = playersData[myId].name;
+                            document.getElementById('reveal-btn').classList.remove('hidden');
+                            document.getElementById('role-info').classList.add('hidden');
+                            document.getElementById('discussion-ui').classList.add('hidden');
+                        } else if (hasFinishedReveal) {
+                            // FÁZE 2: Diskuze
+                            document.getElementById('role-info').classList.add('hidden');
+                            document.getElementById('reveal-btn').classList.add('hidden');
+                            document.getElementById('discussion-ui').classList.remove('hidden');
+                            
+                            document.getElementById('turn-subtitle').innerText = "Diskuze";
+                            document.getElementById('player-turn-name').innerText = "Hledejte impostora";
+                            document.getElementById('starting-player-name').innerText = playersData[data.gameState.startingPlayerId].name;
+                        }
                     }
                 }
             }
@@ -276,7 +358,9 @@
             status: 'playing',
             gameState: {
                 roundId: Date.now(),
+                isRevealed: false,
                 impostorId: ids[Math.floor(Math.random() * ids.length)],
+                startingPlayerId: ids[Math.floor(Math.random() * ids.length)],
                 word: item.word,
                 hint: item.hint,
                 activePlayers: ids
@@ -284,6 +368,11 @@
         });
     };
 
+    window.endRound = () => {
+        update(ref(db, 'rooms/' + myRoom + '/gameState/isRevealed'), true);
+    };
+
+    // --- SDÍLENÁ LOGIKA ---
     window.revealMyRole = () => {
         const state = window.currentGameState;
         const isImp = isOnline ? (myId === state.impostorId) : (localTurnIndex === state.impostorId);
@@ -302,15 +391,24 @@
                 window.updateLocalTurn();
                 hasFinishedReveal = false;
             } else {
-                document.getElementById('turn-subtitle').innerText = "Všichni znají role";
-                document.getElementById('player-turn-name').innerText = "Hra běží! 🕵️‍♂️";
+                document.getElementById('turn-subtitle').innerText = "Diskuze";
+                document.getElementById('player-turn-name').innerText = "Hledejte impostora";
                 document.getElementById('role-info').classList.add('hidden');
-                document.getElementById('local-lobby-btn').classList.remove('hidden');
+                document.getElementById('discussion-ui').classList.remove('hidden');
+                document.getElementById('starting-player-name').innerText = localPlayers[window.currentGameState.startingPlayerIndex];
+                document.getElementById('local-end-round-btn').classList.remove('hidden');
             }
         } else {
+            // Online verze - zobrazení diskuze (listenToRoom se postará o data přes isNewRound)
             document.getElementById('role-info').classList.add('hidden');
+            document.getElementById('discussion-ui').classList.remove('hidden');
             document.getElementById('turn-subtitle').innerText = "Diskuze";
-            document.getElementById('player-turn-name').innerText = "Hledejte impostora...";
+            document.getElementById('player-turn-name').innerText = "Hledejte impostora";
+            
+            // Fetch the name directly from state
+            get(ref(db, 'rooms/' + myRoom + '/players/' + window.currentGameState.startingPlayerId)).then(snap => {
+                document.getElementById('starting-player-name').innerText = snap.val().name;
+            });
         }
     };
 
