@@ -141,6 +141,7 @@
 
     let isOnline = false;
     let myRoom = '';
+    let isHost = false;
     let localPlayers = JSON.parse(localStorage.getItem('impostor_local_players')) || [];
     let localTurnIndex = 0;
     let hasFinishedReveal = false;
@@ -234,8 +235,6 @@
     };
 
     // --- ONLINE HRA ---
-    
-    // Sledování online statusu
     const connectedRef = ref(db, '.info/connected');
     onValue(connectedRef, (snap) => {
         if (snap.val() === true && myRoom && isOnline) {
@@ -269,7 +268,7 @@
     };
 
     window.kickPlayer = (id) => {
-        if (myRoom) remove(ref(db, 'rooms/' + myRoom + '/players/' + id));
+        if (myRoom && isHost) remove(ref(db, 'rooms/' + myRoom + '/players/' + id));
     };
 
     function listenToRoom() {
@@ -279,7 +278,7 @@
 
             const playersData = data.players;
             const pArray = Object.values(playersData);
-            const isHost = (data.hostId === myId);
+            isHost = (data.hostId === myId);
 
             document.getElementById('online-player-list').innerHTML = pArray.map(p => `
                 <li class="bg-slate-900 border ${p.id === myId ? 'border-indigo-500' : 'border-slate-800'} p-4 rounded-xl flex justify-between items-center fade-in">
@@ -324,7 +323,6 @@
                     } else {
                         document.getElementById('end-round-ui').classList.add('hidden');
                         document.getElementById('host-reset-btn').classList.add('hidden');
-                        document.getElementById('host-end-round-btn').classList.toggle('hidden', !isHost);
                         
                         if (isNewRound) {
                             // FÁZE 1: Zjišťování rolí
@@ -334,6 +332,7 @@
                             document.getElementById('reveal-btn').classList.remove('hidden');
                             document.getElementById('role-info').classList.add('hidden');
                             document.getElementById('discussion-ui').classList.add('hidden');
+                            document.getElementById('host-end-round-btn').classList.add('hidden');
                         } else if (hasFinishedReveal) {
                             // FÁZE 2: Diskuze
                             document.getElementById('role-info').classList.add('hidden');
@@ -343,6 +342,7 @@
                             document.getElementById('turn-subtitle').innerText = "Diskuze";
                             document.getElementById('player-turn-name').innerText = "Hledejte impostora";
                             document.getElementById('starting-player-name').innerText = playersData[data.gameState.startingPlayerId].name;
+                            document.getElementById('host-end-round-btn').classList.toggle('hidden', !isHost);
                         }
                     }
                 }
@@ -368,8 +368,11 @@
         });
     };
 
+    // OPRAVA: Metoda update() v Firebase SDK potřebuje objekt
     window.endRound = () => {
-        update(ref(db, 'rooms/' + myRoom + '/gameState/isRevealed'), true);
+        update(ref(db, 'rooms/' + myRoom + '/gameState'), {
+            isRevealed: true
+        });
     };
 
     // --- SDÍLENÁ LOGIKA ---
@@ -399,16 +402,19 @@
                 document.getElementById('local-end-round-btn').classList.remove('hidden');
             }
         } else {
-            // Online verze - zobrazení diskuze (listenToRoom se postará o data přes isNewRound)
+            // Online verze
             document.getElementById('role-info').classList.add('hidden');
             document.getElementById('discussion-ui').classList.remove('hidden');
             document.getElementById('turn-subtitle').innerText = "Diskuze";
             document.getElementById('player-turn-name').innerText = "Hledejte impostora";
             
-            // Fetch the name directly from state
             get(ref(db, 'rooms/' + myRoom + '/players/' + window.currentGameState.startingPlayerId)).then(snap => {
                 document.getElementById('starting-player-name').innerText = snap.val().name;
             });
+
+            if (isHost) {
+                document.getElementById('host-end-round-btn').classList.remove('hidden');
+            }
         }
     };
 
