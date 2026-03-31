@@ -36,7 +36,6 @@
             overflow-x: hidden;
         }
 
-        /* Animated background mesh */
         body::before {
             content: '';
             position: fixed;
@@ -49,26 +48,17 @@
             z-index: 0;
         }
 
-        #app {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Typography */
+        #app { position: relative; z-index: 1; }
         .font-mono-custom { font-family: 'Space Mono', monospace; }
 
-        /* Screens */
         .screen {
             display: none;
             flex-direction: column;
             min-height: 100dvh;
             padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px) 0;
         }
-        .screen.active {
-            display: flex;
-        }
+        .screen.active { display: flex; }
 
-        /* Glassmorphism card */
         .glass {
             background: rgba(14, 19, 32, 0.8);
             border: 1px solid var(--border);
@@ -76,7 +66,6 @@
             -webkit-backdrop-filter: blur(16px);
         }
 
-        /* Button styles */
         .btn {
             display: flex;
             align-items: center;
@@ -84,34 +73,22 @@
             gap: 8px;
             padding: 16px 24px;
             border-radius: 14px;
-            font-family: 'Inter', sans-serif;
             font-weight: 800;
             font-size: 15px;
             letter-spacing: 0.04em;
             text-transform: uppercase;
-            transition: transform 0.12s ease, opacity 0.12s ease, box-shadow 0.2s ease;
+            transition: transform 0.12s ease, opacity 0.12s ease;
             cursor: pointer;
             border: none;
             width: 100%;
-            position: relative;
-            overflow: hidden;
         }
         .btn:active { transform: scale(0.96); opacity: 0.9; }
-        .btn::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: rgba(255,255,255,0);
-            transition: background 0.1s;
-        }
-        .btn:active::after { background: rgba(255,255,255,0.05); }
 
         .btn-primary {
             background: linear-gradient(135deg, #6C63FF 0%, #8B5CF6 100%);
             color: white;
             box-shadow: 0 8px 32px rgba(108,99,255,0.3);
         }
-        .btn-primary:active { box-shadow: 0 4px 16px rgba(108,99,255,0.2); }
 
         .btn-secondary {
             background: var(--surface2);
@@ -135,10 +112,8 @@
             background: transparent;
             color: var(--muted);
             border: none;
-            padding: 12px 0;
         }
 
-        /* Input */
         .input {
             width: 100%;
             background: var(--surface2);
@@ -146,49 +121,26 @@
             border-radius: 12px;
             padding: 14px 16px;
             font-size: 16px;
-            font-family: 'Inter', sans-serif;
             color: var(--text);
             outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            -webkit-appearance: none;
         }
-        .input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(108,99,255,0.2);
-        }
-        .input::placeholder { color: var(--muted); }
 
-        /* Animations */
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        @keyframes countIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(108,99,255,0.4); }
-            50% { box-shadow: 0 0 0 8px rgba(108,99,255,0); }
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes shimmer {
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
         }
-        @keyframes countIn {
-            0% { transform: scale(0.5); opacity: 0; }
-            70% { transform: scale(1.1); }
-            100% { transform: scale(1); opacity: 1; }
-        }
 
         .fade-up { animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
-        .fade-up-d1 { animation-delay: 0.05s; }
-        .fade-up-d2 { animation-delay: 0.1s; }
-        .fade-up-d3 { animation-delay: 0.15s; }
-        .fade-up-d4 { animation-delay: 0.2s; }
+        .word-reveal { animation: countIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 
-        /* Player list item */
         .player-item {
             display: flex;
             align-items: center;
@@ -197,30 +149,20 @@
             border-radius: 12px;
             background: var(--surface2);
             border: 1px solid var(--border);
-            animation: fadeUp 0.25s ease both;
         }
-        .player-item.is-me { border-color: rgba(108,99,255,0.5); }
 
-        /* Online dot */
         .dot-online { background: var(--success); box-shadow: 0 0 8px rgba(0,229,160,0.7); }
         .dot-offline { background: rgba(255,77,109,0.5); }
 
-        /* Role reveal card */
         .role-card {
             border-radius: 24px;
             padding: 40px 24px;
             text-align: center;
+            transition: all 0.3s ease;
         }
-        .role-impostor {
-            background: linear-gradient(145deg, rgba(255,77,109,0.15) 0%, rgba(255,77,109,0.05) 100%);
-            border: 1px solid rgba(255,77,109,0.3);
-        }
-        .role-civilian {
-            background: linear-gradient(145deg, rgba(0,229,160,0.15) 0%, rgba(0,229,160,0.05) 100%);
-            border: 1px solid rgba(0,229,160,0.2);
-        }
+        .role-impostor { background: rgba(255,77,109,0.1); border: 1px solid rgba(255,77,109,0.3); }
+        .role-civilian { background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.2); }
 
-        /* Tap to reveal button */
         .reveal-btn {
             background: linear-gradient(135deg, var(--accent), #8B5CF6, #EC4899);
             background-size: 200% 200%;
@@ -229,62 +171,27 @@
             height: 160px;
             font-size: 18px;
             font-weight: 800;
-            letter-spacing: 0.08em;
             color: white;
             box-shadow: 0 12px 40px rgba(108,99,255,0.4);
         }
 
-        /* Room code badge */
         .room-badge {
             font-family: 'Space Mono', monospace;
             background: var(--surface2);
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 6px 14px;
-            font-size: 18px;
-            font-weight: 700;
             color: var(--accent2);
-            letter-spacing: 0.1em;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(108,99,255,0.3); border-radius: 4px; }
-
-        /* Tag / badge */
         .badge {
-            display: inline-flex;
-            align-items: center;
             padding: 4px 10px;
             border-radius: 6px;
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.08em;
             text-transform: uppercase;
         }
 
-        /* Section divider */
-        .divider {
-            height: 1px;
-            background: var(--border);
-        }
-
-        /* Loading spinner */
-        .spinner {
-            width: 20px; height: 20px;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        /* Word reveal animation */
-        .word-reveal {
-            animation: countIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-        }
-
-        /* Floating label for input */
         .input-group { position: relative; }
         .input-label {
             position: absolute;
@@ -292,48 +199,20 @@
             left: 12px;
             font-size: 11px;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
             color: var(--accent2);
             background: var(--bg);
             padding: 0 4px;
         }
 
-        /* PWA install banner */
-        #pwa-banner {
-            position: fixed;
-            bottom: 0;
-            left: 0; right: 0;
-            z-index: 999;
-            padding: 16px;
-            padding-bottom: max(16px, env(safe-area-inset-bottom));
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            display: none;
-            align-items: center;
-            gap: 12px;
-            animation: fadeUp 0.3s ease;
-        }
-
         .icon-btn {
-            width: 40px; height: 40px;
+            width: 36px; height: 36px;
             border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
             background: var(--surface2);
             border: 1px solid var(--border);
             color: var(--danger);
-            font-size: 18px;
-            flex-shrink: 0;
-            cursor: pointer;
-            transition: transform 0.1s;
         }
-        .icon-btn:active { transform: scale(0.9); }
 
-        /* Numeric stats row */
-        .stat-row {
-            display: flex;
-            gap: 12px;
-        }
         .stat-box {
             flex: 1;
             background: var(--surface2);
@@ -342,270 +221,129 @@
             padding: 12px;
             text-align: center;
         }
-        .stat-number {
-            font-family: 'Space Mono', monospace;
-            font-size: 24px;
-            font-weight: 700;
-        }
-        .stat-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--muted);
-            margin-top: 2px;
-        }
     </style>
 </head>
 <body>
 
 <div id="app">
-
     <div id="screen-mode" class="screen">
         <div class="flex-1 flex flex-col justify-center px-6 py-10 max-w-md mx-auto w-full">
             <div class="mb-12 fade-up">
-                <div class="flex items-center gap-3 mb-3">
-                    <div style="width:10px;height:10px;border-radius:50%;background:var(--danger);box-shadow:0 0 12px rgba(255,77,109,0.8);animation:pulse-glow 2s infinite;"></div>
-                    <span style="font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);">Party Game</span>
-                </div>
-                <h1 style="font-size:clamp(52px,14vw,72px);font-weight:800;line-height:0.9;letter-spacing:-0.03em;color:var(--text);">IMPOS<span style="color:var(--accent);">TOR</span></h1>
-                <p style="color:var(--muted);font-size:14px;margin-top:12px;">Jeden z vás je zrádce. Kdo?</p>
+                <h1 style="font-size:clamp(52px,14vw,72px);font-weight:800;line-height:0.9;letter-spacing:-0.03em;">IMPOS<span style="color:var(--accent);">TOR</span></h1>
+                <p style="color:var(--muted);font-size:14px;margin-top:12px;">Jeden z vás lže. Najdi ho.</p>
             </div>
-
-            <div class="space-y-3 fade-up fade-up-d1">
-                <button onclick="window.setMode('online')" class="btn btn-primary" style="height:72px;font-size:16px;border-radius:18px;">
-                    <span style="font-size:20px;">🌐</span>
-                    <div style="text-align:left;">
-                        <div>Online hra</div>
-                        <div style="font-size:11px;font-weight:400;opacity:0.7;text-transform:none;letter-spacing:0;">Každý na svém zařízení</div>
-                    </div>
-                </button>
-                <button onclick="window.setMode('local')" class="btn btn-secondary" style="height:72px;font-size:16px;border-radius:18px;">
-                    <span style="font-size:20px;">👥</span>
-                    <div style="text-align:left;">
-                        <div>Lokální hra</div>
-                        <div style="font-size:11px;font-weight:400;opacity:0.7;text-transform:none;letter-spacing:0;">Jedno zařízení v kruhu</div>
-                    </div>
-                </button>
+            <div class="space-y-3 fade-up">
+                <button onclick="window.setMode('online')" class="btn btn-primary" style="height:72px;">🌐 Online hra</button>
+                <button onclick="window.setMode('local')" class="btn btn-secondary" style="height:72px;">👥 Lokální hra</button>
             </div>
-
-            <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:32px;" class="fade-up fade-up-d2">Potřebuješ min. 3 hráče</p>
         </div>
     </div>
 
     <div id="screen-login" class="screen">
         <div class="flex-1 flex flex-col px-6 py-6 max-w-md mx-auto w-full">
-            <button onclick="window.showScreen('screen-mode')" class="btn btn-ghost" style="width:auto;align-self:flex-start;padding:12px 0;font-size:13px;gap:6px;">
-                ← Zpět
-            </button>
-
+            <button onclick="window.showScreen('screen-mode')" class="btn btn-ghost" style="width:auto;align-self:flex-start;">← Zpět</button>
             <div class="flex-1 flex flex-col justify-center space-y-6">
-                <div class="fade-up">
-                    <h2 style="font-size:28px;font-weight:800;margin-bottom:4px;">Online hra</h2>
-                    <p style="color:var(--muted);font-size:14px;">Sdílej kód místnosti s přáteli</p>
-                </div>
-
-                <div class="space-y-4 fade-up fade-up-d1">
+                <h2 style="font-size:28px;font-weight:800;">Online hra</h2>
+                <div class="space-y-4">
                     <div class="input-group">
-                        <span class="input-label">Tvoje jméno</span>
-                        <input type="text" id="user-name" placeholder="Jak se jmenuješ?" class="input" autocomplete="off" autocorrect="off" spellcheck="false">
+                        <span class="input-label">Jméno</span>
+                        <input type="text" id="user-name" placeholder="Přezdívka" class="input">
                     </div>
                     <div class="input-group">
-                        <span class="input-label">Kód místnosti</span>
-                        <input type="text" id="room-id" placeholder="ABCD" class="input font-mono-custom" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;letter-spacing:0.15em;font-size:20px;">
+                        <span class="input-label">Místnost</span>
+                        <input type="text" id="room-id" placeholder="ABCD" class="input font-mono-custom" style="text-transform:uppercase;">
                     </div>
                 </div>
-
-                <div class="grid grid-cols-2 gap-3 fade-up fade-up-d2">
-                    <button onclick="window.joinRoom(true)" class="btn btn-primary" style="border-radius:14px;">Založit</button>
-                    <button onclick="window.joinRoom(false)" class="btn btn-secondary" style="border-radius:14px;">Připojit</button>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="window.joinRoom(true)" class="btn btn-primary">Založit</button>
+                    <button onclick="window.joinRoom(false)" class="btn btn-secondary">Připojit</button>
                 </div>
-
-                <p style="text-align:center;font-size:12px;color:var(--muted);" class="fade-up fade-up-d3">
-                    Kód místnosti sdílej ústně nebo jako screenshot
-                </p>
             </div>
         </div>
     </div>
 
     <div id="screen-local-setup" class="screen">
-        <div class="flex flex-col px-6 py-6 max-w-md mx-auto w-full" style="min-height:100dvh;">
-            <div class="flex items-center gap-3 mb-8">
-                <button onclick="window.showScreen('screen-mode')" class="btn btn-ghost" style="width:auto;padding:8px 0;font-size:13px;">← Zpět</button>
-                <div style="flex:1"></div>
-                <span id="local-player-count-badge" class="badge" style="background:rgba(108,99,255,0.15);color:var(--accent2);">0 hráčů</span>
+        <div class="flex flex-col px-6 py-6 max-w-md mx-auto w-full h-full">
+            <button onclick="window.showScreen('screen-mode')" class="btn btn-ghost" style="width:auto;align-self:flex-start;">← Zpět</button>
+            <h2 style="font-size:26px;font-weight:800;margin:20px 0 10px;">Lokální párty</h2>
+            <div class="glass rounded-2xl p-3 mb-4 flex gap-2">
+                <input type="text" id="local-player-name" placeholder="Jméno..." class="input" style="background:transparent;border:none;">
+                <button onclick="window.addLocalPlayer()" class="btn btn-primary" style="width:auto;">+</button>
             </div>
-
-            <div class="fade-up">
-                <h2 style="font-size:26px;font-weight:800;margin-bottom:4px;">Lokální párty</h2>
-                <p style="color:var(--muted);font-size:14px;margin-bottom:20px;">Přidej hráče (min. 3)</p>
-            </div>
-
-            <div class="glass rounded-2xl p-3 mb-4 flex gap-2 fade-up fade-up-d1" style="border-radius:16px;">
-                <input type="text" id="local-player-name" placeholder="Jméno hráče..." class="input" style="background:transparent;border:none;padding:10px 12px;box-shadow:none;flex:1;"
-                    onkeydown="if(event.key==='Enter') window.addLocalPlayer()">
-                <button onclick="window.addLocalPlayer()" class="btn btn-primary" style="width:auto;padding:10px 20px;border-radius:10px;flex-shrink:0;">Přidat</button>
-            </div>
-
-            <ul id="local-player-list" class="space-y-2 flex-1 overflow-y-auto fade-up fade-up-d2" style="min-height:0;"></ul>
-
-            <div id="local-start-wrapper" class="hidden pt-4 fade-up">
-                <button id="local-start-btn" onclick="window.startLocalGame()" class="btn btn-success" style="border-radius:16px;height:60px;font-size:17px;">
-                    🚀 Spustit hru
-                </button>
+            <ul id="local-player-list" class="space-y-2 flex-1 overflow-y-auto"></ul>
+            <div id="local-start-wrapper" class="hidden pt-4">
+                <button onclick="window.startLocalGame()" class="btn btn-success" style="height:60px;">🚀 Spustit</button>
             </div>
         </div>
     </div>
 
     <div id="screen-lobby" class="screen">
-        <div class="flex flex-col px-6 py-6 max-w-md mx-auto w-full" style="min-height:100dvh;">
-            <div class="flex items-center justify-between mb-6 fade-up">
-                <button onclick="window.leaveRoom()" class="btn btn-danger-ghost" style="width:auto;padding:10px 18px;font-size:12px;">Odejít</button>
-                <div style="text-align:right;">
-                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);">Místnost</div>
-                    <div id="display-room" class="room-badge">---</div>
-                </div>
+        <div class="flex flex-col px-6 py-6 max-w-md mx-auto w-full h-full">
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="window.leaveRoom()" class="btn btn-danger-ghost" style="width:auto;padding:10px 18px;">Odejít</button>
+                <div id="display-room" class="room-badge">---</div>
             </div>
-
-            <div class="stat-row mb-4 fade-up fade-up-d1">
-                <div class="stat-box">
-                    <div class="stat-number" id="lobby-player-count" style="color:var(--accent2);">0</div>
-                    <div class="stat-label">hráčů online</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-number" style="color:var(--success);">3+</div>
-                    <div class="stat-label">potřeba ke hře</div>
-                </div>
+            <div class="flex gap-3 mb-4">
+                <div class="stat-box"><div id="lobby-player-count" style="font-size:24px;font-weight:800;">0</div><div style="font-size:10px;color:var(--muted);">Hráčů</div></div>
+                <div class="stat-box"><div style="font-size:24px;font-weight:800;color:var(--success);">3+</div><div style="font-size:10px;color:var(--muted);">Limit</div></div>
             </div>
-
-            <div class="fade-up fade-up-d2" style="margin-bottom:8px;">
-                <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:10px;">Hráči v místnosti</p>
-                <ul id="online-player-list" class="space-y-2 overflow-y-auto" style="max-height:40dvh;"></ul>
-            </div>
-
-            <div style="flex:1;"></div>
-
-            <div id="lobby-footer" class="pt-4 fade-up fade-up-d3">
-                <button id="host-start-btn" onclick="window.triggerGameStart()" class="hidden btn btn-success" style="border-radius:16px;height:60px;font-size:17px;">
-                    🚀 Spustit hru
-                </button>
-                <div id="wait-msg" class="glass rounded-2xl p-4 text-center" style="color:var(--muted);">
-                    <div style="font-size:20px;margin-bottom:4px;">⏳</div>
-                    <p style="font-size:14px;">Čekáme na hostitele...</p>
-                </div>
+            <ul id="online-player-list" class="space-y-2 flex-1 overflow-y-auto"></ul>
+            <div id="lobby-footer" class="pt-4">
+                <button id="host-start-btn" onclick="window.triggerGameStart()" class="hidden btn btn-success" style="height:60px;">🚀 Spustit</button>
+                <div id="wait-msg" class="glass rounded-2xl p-4 text-center hidden">⏳ Čekáme na hostitele...</div>
             </div>
         </div>
     </div>
 
     <div id="screen-game" class="screen">
-        <div class="flex flex-col px-6 py-6 max-w-md mx-auto w-full" style="min-height:100dvh;">
-
-            <div id="wait-for-round" class="hidden flex-1 flex flex-col justify-center items-center text-center space-y-4">
-                <div style="font-size:56px;">⏸️</div>
-                <h2 style="font-size:22px;font-weight:800;">Hra probíhá...</h2>
-                <p style="color:var(--muted);font-size:14px;max-width:240px;">Počkej, až skončí aktuální kolo. Hostitel tě přidá do dalšího.</p>
-                <button onclick="window.leaveRoom()" class="btn btn-danger-ghost" style="margin-top:16px;width:auto;padding:12px 24px;">Odejít z místnosti</button>
+        <div class="flex flex-col px-6 py-6 max-w-md mx-auto w-full h-full">
+            <div class="flex justify-between items-center mb-4">
+                <div id="game-room-info" style="font-size:12px;color:var(--muted);"></div>
+                <button id="in-game-leave-btn" onclick="window.leaveRoom()" class="btn btn-danger-ghost" style="width:auto;padding:8px 14px;font-size:11px;">Odejít</button>
             </div>
 
-            <div id="game-active-ui" class="flex-1 flex flex-col">
-
-                <div class="flex items-center justify-between mb-4 fade-up">
-                    <div id="game-room-info" style="font-size:12px;color:var(--muted);font-weight:700;"></div>
-                    <button id="in-game-leave-btn" onclick="window.leaveRoom()" class="btn btn-danger-ghost" style="width:auto;padding:8px 14px;font-size:11px;display:none;">Odejít</button>
+            <div class="glass flex-1 flex flex-col justify-center p-6 rounded-[24px]">
+                <div id="turn-info" class="mb-6">
+                    <span id="turn-subtitle" style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;">Aktuálně</span>
+                    <h2 id="player-turn-name" style="font-size:32px;font-weight:800;">---</h2>
                 </div>
 
-                <div class="glass flex-1 flex flex-col justify-center p-6 fade-up fade-up-d1" style="border-radius:24px;min-height:0;">
+                <button id="reveal-btn" onclick="window.revealMyRole()" class="btn reveal-btn">Tapni pro roli</button>
 
-                    <div id="turn-info" style="margin-bottom:24px;">
-                        <span id="turn-subtitle" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);display:block;margin-bottom:6px;">Na řadě je</span>
-                        <h2 id="player-turn-name" style="font-size:clamp(28px,8vw,40px);font-weight:800;line-height:1;margin:0;">---</h2>
-                    </div>
-
-                    <button id="reveal-btn" onclick="window.revealMyRole()" class="btn reveal-btn" style="width:100%;letter-spacing:0.1em;">
-                        👆 Tapni pro roli
-                    </button>
-
-                    <div id="role-info" class="hidden">
-                        <div id="role-card-inner" class="role-card">
-                            <p id="role-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;opacity:0.7;"></p>
-                            <div id="role-word" class="word-reveal" style="font-size:clamp(40px,12vw,60px);font-weight:800;line-height:1;margin-bottom:8px;letter-spacing:-0.02em;"></div>
-                            <p id="role-badge-text" style="font-size:12px;font-weight:700;margin-bottom:24px;opacity:0.8;"></p>
-                            <button onclick="window.finishReveal()" class="btn" style="background:rgba(255,255,255,0.1);color:white;border-radius:12px;">Rozumím ✓</button>
-                        </div>
-                    </div>
-
-                    <div id="discussion-ui" class="hidden" style="text-align:center;padding:16px 0;">
-                        <span class="badge" style="background:rgba(0,229,160,0.15);color:var(--success);margin-bottom:16px;">Diskuze začíná</span>
-                        <p style="font-size:13px;color:var(--muted);margin-bottom:8px;">Začíná mluvit:</p>
-                        <h3 id="starting-player-name" style="font-size:32px;font-weight:800;margin-bottom:24px;">---</h3>
-                        <button id="host-end-round-btn" onclick="window.endRound()" class="hidden btn btn-danger-ghost" style="border-radius:12px;">
-                            🔍 Odhalit impostora
-                        </button>
-                        <button id="local-end-round-btn" onclick="window.revealLocalImpostor()" class="hidden btn btn-danger-ghost" style="border-radius:12px;">
-                            🔍 Odhalit impostora
-                        </button>
-                    </div>
-
-                    <div id="end-round-ui" class="hidden">
-                        <div style="text-align:center;margin-bottom:20px;">
-                            <span class="badge" style="background:rgba(255,77,109,0.15);color:var(--danger);margin-bottom:12px;">Impostor odhalen</span>
-                            <h3 id="impostor-name-display" style="font-size:clamp(36px,10vw,52px);font-weight:800;line-height:1;margin:0;"></h3>
-                        </div>
-
-                        <div class="glass rounded-2xl p-4 mb-4" style="text-align:center;">
-                            <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:6px;">Hledané slovo</p>
-                            <p id="revealed-word" style="font-size:28px;font-weight:800;color:var(--success);"></p>
-                        </div>
-
-                        <div id="end-round-management" class="hidden">
-                            <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:10px;">Hráči</p>
-                            <ul id="end-round-player-list" class="space-y-2" style="max-height:160px;overflow-y:auto;margin-bottom:0;"></ul>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="pt-4 space-y-2 fade-up fade-up-d2">
-                    <button id="host-reset-btn" onclick="window.triggerGameStart()" class="hidden btn btn-success" style="border-radius:16px;height:56px;font-size:16px;">🔄 Nová hra</button>
-                    <div id="local-footer-btns" class="hidden grid gap-3" style="grid-template-columns:1fr 1fr;">
-                        <button onclick="window.showScreen('screen-local-setup')" class="btn btn-secondary" style="border-radius:14px;height:52px;font-size:13px;">👥 Lobby</button>
-                        <button onclick="window.startLocalGame()" class="btn btn-success" style="border-radius:14px;height:52px;font-size:13px;">🔄 Nová hra</button>
+                <div id="role-info" class="hidden">
+                    <div id="role-card-inner" class="role-card">
+                        <p id="role-label" style="font-size:12px;font-weight:700;margin-bottom:10px;"></p>
+                        <div id="role-word" style="font-size:48px;font-weight:800;margin-bottom:20px;"></div>
+                        <p id="role-badge-text" style="font-size:14px;opacity:0.7;margin-bottom:20px;"></p>
+                        <button onclick="window.finishReveal()" class="btn btn-secondary">Rozumím ✓</button>
                     </div>
                 </div>
 
+                <div id="discussion-ui" class="hidden text-center">
+                    <span class="badge" style="background:rgba(0,229,160,0.15);color:var(--success);margin-bottom:15px;">Diskuze</span>
+                    <p style="font-size:13px;color:var(--muted);">Začíná mluvit:</p>
+                    <h3 id="starting-player-name" style="font-size:32px;font-weight:800;margin-bottom:20px;">---</h3>
+                    <button id="host-end-round-btn" onclick="window.endRound()" class="hidden btn btn-danger-ghost">🔍 Odhalit impostora</button>
+                    <button id="local-end-round-btn" onclick="window.revealLocalImpostor()" class="hidden btn btn-danger-ghost">🔍 Odhalit impostora</button>
+                </div>
+
+                <div id="end-round-ui" class="hidden text-center">
+                    <h3 id="impostor-name-display" style="font-size:40px;font-weight:800;color:var(--danger);">---</h3>
+                    <p style="color:var(--muted);font-size:12px;margin:10px 0;">Hledané slovo bylo:</p>
+                    <div id="revealed-word" style="font-size:28px;font-weight:800;color:var(--success);">---</div>
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button id="host-reset-btn" onclick="window.triggerGameStart()" class="hidden btn btn-success" style="height:56px;">🔄 Další kolo</button>
+                <div id="local-footer-btns" class="hidden grid grid-cols-2 gap-3">
+                    <button onclick="window.showScreen('screen-local-setup')" class="btn btn-secondary">Lobby</button>
+                    <button onclick="window.startLocalGame()" class="btn btn-success">Znovu</button>
+                </div>
             </div>
         </div>
     </div>
-
 </div>
-
-<div id="pwa-banner">
-    <div style="font-size:28px;flex-shrink:0;">📲</div>
-    <div style="flex:1;">
-        <p style="font-weight:700;font-size:14px;margin:0 0 2px;">Přidat na plochu</p>
-        <p style="font-size:12px;color:var(--muted);margin:0;">Hrej offline, bez prohlížeče</p>
-    </div>
-    <button onclick="window.triggerPWAInstall()" class="btn btn-primary" style="width:auto;padding:10px 18px;font-size:13px;flex-shrink:0;border-radius:10px;">Přidat</button>
-    <button onclick="document.getElementById('pwa-banner').style.display='none'" class="icon-btn" style="flex-shrink:0;">✕</button>
-</div>
-
-<script>
-    // PWA
-    let deferredPrompt = null;
-    window.addEventListener('beforeinstallprompt', e => {
-        e.preventDefault();
-        deferredPrompt = e;
-        const b = document.getElementById('pwa-banner');
-        b.style.display = 'flex';
-    });
-    window.triggerPWAInstall = async () => {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        deferredPrompt = null;
-        document.getElementById('pwa-banner').style.display = 'none';
-    };
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
-</script>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
@@ -618,8 +356,7 @@
         projectId: "impos-9d3d4",
         storageBucket: "impos-9d3d4.firebasestorage.app",
         messagingSenderId: "909569492432",
-        appId: "1:909569492432:web:18fdf5a73d46129ef9a5d5",
-        measurementId: "G-N6YSHR8CRN"
+        appId: "1:909569492432:web:18fdf5a73d46129ef9a5d5"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -628,41 +365,33 @@
     let myId = localStorage.getItem('impostor_uid') || 'u_' + Math.random().toString(36).substring(2, 9);
     localStorage.setItem('impostor_uid', myId);
 
-    let isOnline = false;
-    let myRoom = '';
-    let isHost = false;
-    let localPlayers = JSON.parse(localStorage.getItem('impostor_local_players')) || [];
-    let localTurnIndex = 0;
-    let hasFinishedReveal = false;
-    let roomListener = null;
+    let isOnline = false, myRoom = '', isHost = false, localPlayers = JSON.parse(localStorage.getItem('impostor_local_players')) || [], localTurnIndex = 0, hasFinishedReveal = false, roomListener = null;
 
     const items = [
-        { word: "Kladivo", hint: "Nářadí" }, { word: "Pánvička", hint: "Kuchyně" },
-        { word: "Notebook", hint: "Elektronika" }, { word: "Postel", hint: "Nábytek" },
-        { word: "Bunda", hint: "Oblečení" }, { word: "Kolo", hint: "Sport" },
-        { word: "Vrtačka", hint: "Nářadí" }, { word: "Mixér", hint: "Kuchyně" },
-        { word: "Lednice", hint: "Spotřebič" }, { word: "Tablet", hint: "Elektronika" },
-        { word: "Gauč", hint: "Nábytek" }, { word: "Boty", hint: "Oblečení" },
-        { word: "Fotoaparát", hint: "Elektronika" }, { word: "Kytara", hint: "Hudba" },
-        { word: "Stanový stan", hint: "Outdoor" }, { word: "Skateboard", hint: "Sport" },
-        { word: "Konev", hint: "Zahrada" }, { word: "Žehlička", hint: "Domácnost" },
-        { word: "Rámeček na foto", hint: "Dekorace" }, { word: "Hrnček na kávu", hint: "Kuchyně" },
-        { word: "Mikrovlnka", hint: "Spotřebič" }, { word: "Nůžky", hint: "Kancelář" },
-        { word: "Batoh", hint: "Cestování" }, { word: "Sluchátka", hint: "Elektronika" },
+        { word: "Kladivo", hint: "Nářadí" }, { word: "Pánvička", hint: "Kuchyně" }, { word: "Notebook", hint: "Elektronika" }, { word: "Postel", hint: "Nábytek" },
+        { word: "Bunda", hint: "Oblečení" }, { word: "Kolo", hint: "Sport" }, { word: "Vrtačka", hint: "Nářadí" }, { word: "Mixér", hint: "Kuchyně" },
+        { word: "Lednice", hint: "Spotřebič" }, { word: "Tablet", hint: "Elektronika" }, { word: "Gauč", hint: "Nábytek" }, { word: "Boty", hint: "Oblečení" },
+        { word: "Kytara", hint: "Hudba" }, { word: "Stan", hint: "Outdoor" }, { word: "Skateboard", hint: "Sport" }, { word: "Nůžky", hint: "Kancelář" }
     ];
 
-    // --- SCREENS ---
+    // Shuffle helper
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
     window.showScreen = (id) => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        const el = document.getElementById(id);
-        if (el) el.classList.add('active');
+        document.getElementById(id).classList.add('active');
     };
 
     window.setMode = (mode) => {
         isOnline = (mode === 'online');
         if (isOnline) {
-            const saved = localStorage.getItem('impostor_name');
-            if (saved) document.getElementById('user-name').value = saved;
+            document.getElementById('user-name').value = localStorage.getItem('impostor_name') || '';
             window.showScreen('screen-login');
         } else {
             window.showScreen('screen-local-setup');
@@ -670,37 +399,20 @@
         }
     };
 
-    // Init
-    window.showScreen('screen-mode');
-
-    // --- LOKÁLNÍ HRA ---
     window.addLocalPlayer = () => {
-        const input = document.getElementById('local-player-name');
-        const name = input.value.trim();
-        if (!name) return;
-        localPlayers.push(name);
-        input.value = '';
-        input.focus();
-        localStorage.setItem('impostor_local_players', JSON.stringify(localPlayers));
-        window.renderLocalPlayers();
+        const inp = document.getElementById('local-player-name');
+        if (inp.value.trim()) {
+            localPlayers.push(inp.value.trim());
+            inp.value = '';
+            localStorage.setItem('impostor_local_players', JSON.stringify(localPlayers));
+            window.renderLocalPlayers();
+        }
     };
 
     window.renderLocalPlayers = () => {
         const list = document.getElementById('local-player-list');
-        list.innerHTML = localPlayers.map((p, i) => `
-            <li class="player-item" style="animation-delay:${i * 0.04}s">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <span style="font-size:18px;">👤</span>
-                    <span style="font-weight:700;">${escHtml(p)}</span>
-                </div>
-                <button onclick="window.removeLocalPlayer(${i})" class="icon-btn" style="color:var(--danger);">✕</button>
-            </li>
-        `).join('');
-        const count = localPlayers.length;
-        const badge = document.getElementById('local-player-count-badge');
-        if (badge) badge.textContent = `${count} hráč${count === 1 ? '' : count < 5 ? 'i' : 'ů'}`;
-        const wrap = document.getElementById('local-start-wrapper');
-        if (wrap) wrap.classList.toggle('hidden', count < 3);
+        list.innerHTML = localPlayers.map((p, i) => `<li class="player-item"><span>👤 ${p}</span><button onclick="window.removeLocalPlayer(${i})" class="icon-btn">✕</button></li>`).join('');
+        document.getElementById('local-start-wrapper').classList.toggle('hidden', localPlayers.length < 3);
     };
 
     window.removeLocalPlayer = (i) => {
@@ -710,199 +422,134 @@
     };
 
     window.startLocalGame = () => {
-        if (localPlayers.length < 3) return;
+        const shuffled = shuffle([...localPlayers]);
         const item = items[Math.floor(Math.random() * items.length)];
         window.currentGameState = {
-            impostorId: Math.floor(Math.random() * localPlayers.length),
-            startingPlayerIndex: Math.floor(Math.random() * localPlayers.length),
-            word: item.word,
-            hint: item.hint
+            impostorName: shuffled[Math.floor(Math.random() * shuffled.length)],
+            startingPlayer: shuffled[Math.floor(Math.random() * shuffled.length)],
+            word: item.word, hint: item.hint
         };
         localTurnIndex = 0;
         hasFinishedReveal = false;
-
-        // Reset UI
-        el('wait-for-round').classList.add('hidden');
-        el('game-active-ui').classList.remove('hidden');
-        el('local-footer-btns').classList.add('hidden');
-        el('end-round-ui').classList.add('hidden');
-        el('discussion-ui').classList.add('hidden');
-        el('role-info').classList.add('hidden');
-        el('host-reset-btn').classList.add('hidden');
-        el('in-game-leave-btn').style.display = 'none';
-        el('game-room-info').textContent = '';
-
         window.showScreen('screen-game');
         window.updateLocalTurn();
     };
 
     window.updateLocalTurn = () => {
-        el('turn-subtitle').innerText = "Na řadě je";
-        el('player-turn-name').innerText = localPlayers[localTurnIndex];
-        el('reveal-btn').classList.remove('hidden');
-        el('role-info').classList.add('hidden');
+        document.getElementById('player-turn-name').innerText = localPlayers[localTurnIndex];
+        document.getElementById('reveal-btn').classList.remove('hidden');
+        document.getElementById('role-info').classList.add('hidden');
     };
 
-    window.revealLocalImpostor = () => {
-        el('discussion-ui').classList.add('hidden');
-        el('turn-subtitle').innerText = "Konec kola";
-        el('player-turn-name').innerText = "Výsledek";
-        el('end-round-ui').classList.remove('hidden');
-        el('end-round-management').classList.add('hidden');
-        el('impostor-name-display').innerText = localPlayers[window.currentGameState.impostorId];
-        el('revealed-word').innerText = window.currentGameState.word;
-        el('local-footer-btns').classList.remove('hidden');
+    window.revealMyRole = () => {
+        const state = window.currentGameState;
+        const isImp = isOnline ? (myId === state.impostorId) : (localPlayers[localTurnIndex] === state.impostorName);
+        
+        const card = document.getElementById('role-card-inner');
+        const word = document.getElementById('role-word');
+        
+        card.className = 'role-card ' + (isImp ? 'role-impostor' : 'role-civilian');
+        document.getElementById('role-label').innerText = isImp ? "🎭 JSI IMPOSTOR" : "✅ JSI CIVILISTA";
+        document.getElementById('role-badge-text').innerText = isImp ? `Kategorie: ${state.hint}` : `Hledáš: ${state.word}`;
+        word.innerText = isImp ? state.hint : state.word;
+        word.style.color = isImp ? 'var(--danger)' : 'var(--success)';
+        
+        document.getElementById('reveal-btn').classList.add('hidden');
+        document.getElementById('role-info').classList.remove('hidden');
+        
+        // Reset animace
+        word.classList.remove('word-reveal');
+        void word.offsetWidth;
+        word.classList.add('word-reveal');
     };
 
-    // --- ONLINE HRA ---
-    const connectedRef = ref(db, '.info/connected');
-    onValue(connectedRef, (snap) => {
-        if (snap.val() === true && myRoom && isOnline) {
-            const myPlayerRef = ref(db, 'rooms/' + myRoom + '/players/' + myId);
-            update(myPlayerRef, { isOnline: true });
-            onDisconnect(myPlayerRef).update({ isOnline: false });
+    window.finishReveal = () => {
+        if (!isOnline) {
+            localTurnIndex++;
+            if (localTurnIndex < localPlayers.length) {
+                window.updateLocalTurn();
+            } else {
+                document.getElementById('role-info').classList.add('hidden');
+                document.getElementById('discussion-ui').classList.remove('hidden');
+                document.getElementById('player-turn-name').innerText = "Diskuze";
+                document.getElementById('starting-player-name').innerText = window.currentGameState.startingPlayer;
+                document.getElementById('local-end-round-btn').classList.remove('hidden');
+                document.getElementById('local-footer-btns').classList.remove('hidden');
+            }
+        } else {
+            hasFinishedReveal = true;
+            document.getElementById('role-info').classList.add('hidden');
+            document.getElementById('discussion-ui').classList.remove('hidden');
+            if (isHost) document.getElementById('host-end-round-btn').classList.remove('hidden');
         }
-    });
+    };
 
     window.joinRoom = async (create) => {
         const name = document.getElementById('user-name').value.trim();
         const room = document.getElementById('room-id').value.trim().toUpperCase();
-        if (!name || !room) return alert("Doplň jméno a místnost!");
+        if (!name || !room) return alert("Jméno a kód!");
 
         const roomRef = ref(db, 'rooms/' + room);
         const snap = await get(roomRef);
-        const data = snap.val();
-
+        
         if (create) {
-            let isOccupied = false;
-            if (data && data.players) {
-                const activeCount = Object.values(data.players).filter(p => p.isOnline !== false).length;
-                if (activeCount > 0) isOccupied = true;
-            }
-            if (isOccupied) return alert("Místnost už je aktivně obsazená! Zvol jiný kód.");
-            await remove(roomRef); // Wipes stuck ghost rooms completely
+            // Pokud zakládám, promažu stará data pokud nikdo není online
+            const data = snap.val();
+            const active = data?.players ? Object.values(data.players).some(p => p.isOnline !== false) : false;
+            if (active) return alert("Místnost je obsazená!");
+            await remove(roomRef);
+            await update(roomRef, { status: 'lobby', hostId: myId });
         } else {
-            if (!data || !data.players || Object.keys(data.players).length === 0) return alert("Místnost neexistuje nebo je prázdná!");
+            if (!snap.exists()) return alert("Neexistuje!");
         }
 
         myRoom = room;
         localStorage.setItem('impostor_name', name);
-        if (create) {
-            await update(roomRef, { status: 'lobby', hostId: myId, createdAt: Date.now() });
-        }
-
-        const myPlayerRef = ref(db, 'rooms/' + myRoom + '/players/' + myId);
-        await update(myPlayerRef, { name, id: myId, isOnline: true });
-        onDisconnect(myPlayerRef).update({ isOnline: false });
-
+        await update(ref(db, `rooms/${myRoom}/players/${myId}`), { name, id: myId, isOnline: true });
+        onDisconnect(ref(db, `rooms/${myRoom}/players/${myId}`)).update({ isOnline: false });
         listenToRoom();
     };
 
-    window.kickPlayer = (id) => {
-        if (myRoom && isHost) remove(ref(db, 'rooms/' + myRoom + '/players/' + id));
-    };
-
     function listenToRoom() {
-        if (roomListener) {
-            off(ref(db, 'rooms/' + myRoom));
-            roomListener = null;
-        }
-
+        if (roomListener) off(ref(db, 'rooms/' + myRoom));
         roomListener = onValue(ref(db, 'rooms/' + myRoom), (snap) => {
             const data = snap.val();
-            if (!data || !data.players || !data.players[myId]) {
-                window.resetUI();
-                return;
-            }
+            if (!data || !data.players?.[myId]) { window.resetUI(); return; }
 
-            const playersData = data.players;
-            const pArray = Object.values(playersData);
             isHost = (data.hostId === myId);
+            const pArr = Object.values(data.players);
+            const onlineCount = pArr.filter(p => p.isOnline !== false).length;
+            
+            document.getElementById('lobby-player-count').innerText = onlineCount;
+            document.getElementById('display-room').innerText = myRoom;
 
-            const onlineCount = pArray.filter(p => p.isOnline !== false).length;
-            const lobbyCount = el('lobby-player-count');
-            if (lobbyCount) lobbyCount.textContent = onlineCount;
-
-            const playerListHTML = pArray.map(p => `
-                <li class="player-item ${p.id === myId ? 'is-me' : ''}" style="margin-bottom:0;">
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;" class="${p.isOnline !== false ? 'dot-online' : 'dot-offline'}"></span>
-                        <span style="font-weight:700;font-size:14px;${p.isOnline === false ? 'opacity:0.4;' : ''}">${p.id === data.hostId ? '👑 ' : ''}${escHtml(p.name)}${p.id === myId ? ' <span style="font-size:10px;opacity:0.5;">(ty)</span>' : ''}</span>
+            document.getElementById('online-player-list').innerHTML = pArr.map(p => `
+                <li class="player-item">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full ${p.isOnline !== false ? 'dot-online' : 'dot-offline'}"></span>
+                        <span style="${p.isOnline === false ? 'opacity:0.4' : ''}">${p.id === data.hostId ? '👑' : ''} ${p.name}</span>
                     </div>
-                    ${isHost && p.id !== myId ? `<button onclick="window.kickPlayer('${p.id}')" class="icon-btn" style="width:32px;height:32px;font-size:14px;">✕</button>` : ''}
+                    ${isHost && p.id !== myId ? `<button onclick="window.kickPlayer('${p.id}')" class="icon-btn">✕</button>` : ''}
                 </li>`).join('');
-
-            el('online-player-list').innerHTML = playerListHTML;
-            el('end-round-player-list').innerHTML = playerListHTML;
 
             if (data.status === 'lobby') {
                 window.showScreen('screen-lobby');
-                el('display-room').innerText = myRoom;
-                el('host-start-btn').classList.toggle('hidden', !isHost || pArray.length < 3);
-                el('wait-msg').classList.toggle('hidden', isHost);
-
-                const hasAnyPlayers = pArray.some(p => p.isOnline !== false);
-                if (!hasAnyPlayers) remove(ref(db, 'rooms/' + myRoom));
-
+                document.getElementById('host-start-btn').classList.toggle('hidden', !isHost || pArr.length < 3);
+                document.getElementById('wait-msg').classList.toggle('hidden', isHost);
             } else if (data.status === 'playing') {
                 window.showScreen('screen-game');
-                el('game-room-info').textContent = `Místnost: ${myRoom}`;
-                el('in-game-leave-btn').style.display = 'flex'; // Zobrazí se všem
-
-                const inRound = data.gameState.activePlayers && data.gameState.activePlayers.includes(myId);
-                el('wait-for-round').classList.toggle('hidden', inRound);
-                el('game-active-ui').classList.toggle('hidden', !inRound);
-
-                if (inRound) {
-                    const isNewRound = !window.currentGameState || window.currentGameState.roundId !== data.gameState.roundId;
+                document.getElementById('game-room-info').innerText = `Místnost: ${myRoom}`;
+                
+                if (data.gameState.isRevealed) {
+                    document.getElementById('discussion-ui').classList.add('hidden');
+                    document.getElementById('end-round-ui').classList.remove('hidden');
+                    document.getElementById('impostor-name-display').innerText = data.players[data.gameState.impostorId]?.name || "Odpojen";
+                    document.getElementById('revealed-word').innerText = data.gameState.word;
+                    document.getElementById('host-reset-btn').classList.toggle('hidden', !isHost);
+                } else {
                     window.currentGameState = data.gameState;
-
-                    if (data.gameState.isRevealed) {
-                        el('reveal-btn').classList.add('hidden');
-                        el('role-info').classList.add('hidden');
-                        el('discussion-ui').classList.add('hidden');
-                        el('host-end-round-btn').classList.add('hidden');
-
-                        el('turn-subtitle').innerText = "Konec kola";
-                        el('player-turn-name').innerText = "Výsledek";
-
-                        el('end-round-ui').classList.remove('hidden');
-                        el('end-round-management').classList.remove('hidden');
-
-                        if (playersData[data.gameState.impostorId]) {
-                            el('impostor-name-display').innerText = playersData[data.gameState.impostorId].name;
-                        } else {
-                            el('impostor-name-display').innerText = "Hráč se odpojil";
-                        }
-
-                        el('revealed-word').innerText = data.gameState.word;
-                        el('host-reset-btn').classList.toggle('hidden', !isHost || pArray.length < 3);
-                    } else {
-                        el('end-round-ui').classList.add('hidden');
-                        el('host-reset-btn').classList.add('hidden');
-
-                        if (isNewRound) {
-                            hasFinishedReveal = false;
-                            el('turn-subtitle').innerText = "Tvoje role";
-                            el('player-turn-name').innerText = playersData[myId].name;
-                            el('reveal-btn').classList.remove('hidden');
-                            el('role-info').classList.add('hidden');
-                            el('discussion-ui').classList.add('hidden');
-                            el('host-end-round-btn').classList.add('hidden');
-                        } else if (hasFinishedReveal) {
-                            el('role-info').classList.add('hidden');
-                            el('reveal-btn').classList.add('hidden');
-                            el('discussion-ui').classList.remove('hidden');
-
-                            el('turn-subtitle').innerText = "Diskuze";
-                            el('player-turn-name').innerText = "Hledejte impostora";
-
-                            if (playersData[data.gameState.startingPlayerId]) {
-                                el('starting-player-name').innerText = playersData[data.gameState.startingPlayerId].name;
-                            }
-
-                            el('host-end-round-btn').classList.toggle('hidden', !isHost);
-                        }
+                    if (!hasFinishedReveal) {
+                        document.getElementById('player-turn-name').innerText = data.players[myId].name;
                     }
                 }
             }
@@ -910,115 +557,36 @@
     }
 
     window.triggerGameStart = async () => {
-        const snap = await get(ref(db, 'rooms/' + myRoom + '/players'));
-        const ids = Object.keys(snap.val());
+        const snap = await get(ref(db, `rooms/${myRoom}/players`));
+        const ids = shuffle(Object.keys(snap.val()));
         const item = items[Math.floor(Math.random() * items.length)];
-        update(ref(db, 'rooms/' + myRoom), {
+        update(ref(db, `rooms/${myRoom}`), {
             status: 'playing',
             gameState: {
-                roundId: Date.now(),
                 isRevealed: false,
                 impostorId: ids[Math.floor(Math.random() * ids.length)],
                 startingPlayerId: ids[Math.floor(Math.random() * ids.length)],
-                word: item.word,
-                hint: item.hint,
-                activePlayers: ids
+                word: item.word, hint: item.hint, activePlayers: ids
             }
         });
+        hasFinishedReveal = false;
     };
 
-    window.endRound = () => {
-        update(ref(db, 'rooms/' + myRoom + '/gameState'), { isRevealed: true });
-    };
-
-    // --- SHARED LOGIC ---
-    window.revealMyRole = () => {
-        const state = window.currentGameState;
-        const isImp = isOnline ? (myId === state.impostorId) : (localTurnIndex === state.impostorId);
-
-        const card = el('role-card-inner');
-        card.className = 'role-card ' + (isImp ? 'role-impostor' : 'role-civilian');
-
-        el('role-label').innerText = isImp ? "🎭 Jsi IMPOSTOR" : "✅ Jsi CIVILISTA";
-        el('role-badge-text').innerText = isImp ? `Kategorie: ${state.hint}` : `Předmět: ${state.word}`;
-
-        const wordEl = el('role-word');
-        wordEl.innerText = isImp ? state.hint : state.word;
-        wordEl.style.color = isImp ? 'var(--danger)' : 'var(--success)';
-        
-        el('reveal-btn').classList.add('hidden');
-        el('role-info').classList.remove('hidden');
-
-        // Správný re-trigger animací pro plynulejší zobrazení
-        wordEl.classList.remove('word-reveal');
-        card.classList.remove('fade-up');
-        void wordEl.offsetWidth; // Force reflow
-        wordEl.classList.add('word-reveal');
-        card.classList.add('fade-up');
-    };
-
-    window.finishReveal = () => {
-        hasFinishedReveal = true;
-        if (!isOnline) {
-            localTurnIndex++;
-            if (localTurnIndex < localPlayers.length) {
-                window.updateLocalTurn();
-                hasFinishedReveal = false;
-            } else {
-                el('turn-subtitle').innerText = "Diskuze";
-                el('player-turn-name').innerText = "Hledejte impostora";
-                el('role-info').classList.add('hidden');
-                el('discussion-ui').classList.remove('hidden');
-                el('starting-player-name').innerText = localPlayers[window.currentGameState.startingPlayerIndex];
-                el('local-end-round-btn').classList.remove('hidden');
-            }
-        } else {
-            el('role-info').classList.add('hidden');
-            el('discussion-ui').classList.remove('hidden');
-            el('turn-subtitle').innerText = "Diskuze";
-            el('player-turn-name').innerText = "Hledejte impostora";
-
-            get(ref(db, 'rooms/' + myRoom + '/players/' + window.currentGameState.startingPlayerId)).then(snap => {
-                const playerData = snap.val();
-                if (playerData) el('starting-player-name').innerText = playerData.name;
-            });
-
-            if (isHost) {
-                el('host-end-round-btn').classList.remove('hidden');
-            }
-        }
-    };
+    window.endRound = () => update(ref(db, `rooms/${myRoom}/gameState`), { isRevealed: true });
 
     window.leaveRoom = async () => {
-        if (myRoom && isOnline) {
-            const playerRef = ref(db, 'rooms/' + myRoom + '/players/' + myId);
-            await remove(playerRef);
-
-            // Vyčistí prázdné místnosti, když odejde poslední hráč
-            const snap = await get(ref(db, 'rooms/' + myRoom + '/players'));
-            if (!snap.exists() || Object.keys(snap.val() || {}).length === 0) {
-                await remove(ref(db, 'rooms/' + myRoom));
-            }
-        }
+        if (myRoom) await remove(ref(db, `rooms/${myRoom}/players/${myId}`));
         window.resetUI();
     };
 
     window.resetUI = () => {
-        if (myRoom && roomListener) {
-            off(ref(db, 'rooms/' + myRoom));
-            roomListener = null;
-        }
-        myRoom = '';
-        isHost = false;
+        if (roomListener) off(ref(db, 'rooms/' + myRoom));
+        myRoom = ''; isHost = false; hasFinishedReveal = false;
         window.showScreen('screen-mode');
     };
 
-    // Helper
-    function el(id) { return document.getElementById(id); }
-    function escHtml(str) {
-        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-    window.escHtml = escHtml;
+    window.kickPlayer = (id) => remove(ref(db, `rooms/${myRoom}/players/${id}`));
+    window.showScreen('screen-mode');
 </script>
 </body>
 </html>
