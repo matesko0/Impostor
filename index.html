@@ -11,11 +11,16 @@
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Vlastní scrollbar pro seznamy */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
+    <script>
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            alert("Chyba v kódu!\n" + msg + "\nŘádek: " + lineNo);
+            return false;
+        };
+    </script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
 
@@ -290,7 +295,6 @@
             const pArray = Object.values(playersData);
             isHost = (data.hostId === myId);
 
-            // Generování HTML pro seznam hráčů (používá se v lobby i na konci kola)
             const playerListHTML = pArray.map(p => `
                 <li class="bg-slate-950/50 border ${p.id === myId ? 'border-indigo-500' : 'border-slate-800'} p-3 rounded-xl flex justify-between items-center fade-in">
                     <div class="flex items-center gap-3">
@@ -320,7 +324,6 @@
                     window.currentGameState = data.gameState;
                     
                     if (data.gameState.isRevealed) {
-                        // FÁZE 3: Odhalení Impostora a správa hráčů
                         document.getElementById('reveal-btn').classList.add('hidden');
                         document.getElementById('role-info').classList.add('hidden');
                         document.getElementById('discussion-ui').classList.add('hidden');
@@ -331,17 +334,20 @@
                         
                         document.getElementById('end-round-ui').classList.remove('hidden');
                         document.getElementById('end-round-management').classList.remove('hidden');
-                        document.getElementById('impostor-name-display').innerText = playersData[data.gameState.impostorId].name;
-                        document.getElementById('revealed-word').innerText = data.gameState.word;
                         
-                        // Zobrazení tlačítka nová hra, pokud je host a je dostatek hráčů
+                        if (playersData[data.gameState.impostorId]) {
+                            document.getElementById('impostor-name-display').innerText = playersData[data.gameState.impostorId].name;
+                        } else {
+                            document.getElementById('impostor-name-display').innerText = "Hráč se odpojil";
+                        }
+                        
+                        document.getElementById('revealed-word').innerText = data.gameState.word;
                         document.getElementById('host-reset-btn').classList.toggle('hidden', !isHost || pArray.length < 3);
                     } else {
                         document.getElementById('end-round-ui').classList.add('hidden');
                         document.getElementById('host-reset-btn').classList.add('hidden');
                         
                         if (isNewRound) {
-                            // FÁZE 1: Zjišťování rolí
                             hasFinishedReveal = false;
                             document.getElementById('turn-subtitle').innerText = "Tvoje role";
                             document.getElementById('player-turn-name').innerText = playersData[myId].name;
@@ -350,14 +356,17 @@
                             document.getElementById('discussion-ui').classList.add('hidden');
                             document.getElementById('host-end-round-btn').classList.add('hidden');
                         } else if (hasFinishedReveal) {
-                            // FÁZE 2: Diskuze
                             document.getElementById('role-info').classList.add('hidden');
                             document.getElementById('reveal-btn').classList.add('hidden');
                             document.getElementById('discussion-ui').classList.remove('hidden');
                             
                             document.getElementById('turn-subtitle').innerText = "Diskuze";
                             document.getElementById('player-turn-name').innerText = "Hledejte impostora";
-                            document.getElementById('starting-player-name').innerText = playersData[data.gameState.startingPlayerId].name;
+                            
+                            if (playersData[data.gameState.startingPlayerId]) {
+                                document.getElementById('starting-player-name').innerText = playersData[data.gameState.startingPlayerId].name;
+                            }
+                            
                             document.getElementById('host-end-round-btn').classList.toggle('hidden', !isHost);
                         }
                     }
@@ -373,3 +382,76 @@
         update(ref(db, 'rooms/' + myRoom), {
             status: 'playing',
             gameState: {
+                roundId: Date.now(),
+                isRevealed: false,
+                impostorId: ids[Math.floor(Math.random() * ids.length)],
+                startingPlayerId: ids[Math.floor(Math.random() * ids.length)],
+                word: item.word,
+                hint: item.hint,
+                activePlayers: ids
+            }
+        });
+    };
+
+    window.endRound = () => {
+        update(ref(db, 'rooms/' + myRoom + '/gameState'), {
+            isRevealed: true
+        });
+    };
+
+    // --- SDÍLENÁ LOGIKA ---
+    window.revealMyRole = () => {
+        const state = window.currentGameState;
+        const isImp = isOnline ? (myId === state.impostorId) : (localTurnIndex === state.impostorId);
+        document.getElementById('role-label').innerText = isImp ? "Jsi IMPOSTOR. Kategorie:" : "Jsi CIVILISTA. Předmět:";
+        document.getElementById('role-word').innerText = isImp ? state.hint : state.word;
+        document.getElementById('role-word').className = `text-5xl font-black mb-8 tracking-tighter italic ${isImp ? 'text-rose-500' : 'text-emerald-400'}`;
+        document.getElementById('reveal-btn').classList.add('hidden');
+        document.getElementById('role-info').classList.remove('hidden');
+    };
+
+    window.finishReveal = () => {
+        hasFinishedReveal = true;
+        if (!isOnline) {
+            localTurnIndex++;
+            if (localTurnIndex < localPlayers.length) {
+                window.updateLocalTurn();
+                hasFinishedReveal = false;
+            } else {
+                document.getElementById('turn-subtitle').innerText = "Diskuze";
+                document.getElementById('player-turn-name').innerText = "Hledejte impostora";
+                document.getElementById('role-info').classList.add('hidden');
+                document.getElementById('discussion-ui').classList.remove('hidden');
+                document.getElementById('starting-player-name').innerText = localPlayers[window.currentGameState.startingPlayerIndex];
+                document.getElementById('local-end-round-btn').classList.remove('hidden');
+            }
+        } else {
+            document.getElementById('role-info').classList.add('hidden');
+            document.getElementById('discussion-ui').classList.remove('hidden');
+            document.getElementById('turn-subtitle').innerText = "Diskuze";
+            document.getElementById('player-turn-name').innerText = "Hledejte impostora";
+            
+            get(ref(db, 'rooms/' + myRoom + '/players/' + window.currentGameState.startingPlayerId)).then(snap => {
+                const playerData = snap.val();
+                if(playerData) document.getElementById('starting-player-name').innerText = playerData.name;
+            });
+
+            if (isHost) {
+                document.getElementById('host-end-round-btn').classList.remove('hidden');
+            }
+        }
+    };
+
+    window.leaveRoom = () => { 
+        if(myRoom) remove(ref(db, 'rooms/'+myRoom+'/players/'+myId)); 
+        window.resetUI(); 
+    };
+
+    window.resetUI = () => { 
+        myRoom = ''; 
+        window.showScreen('screen-mode'); 
+        off(ref(db, 'rooms')); 
+    };
+</script>
+</body>
+</html>
