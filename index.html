@@ -1,83 +1,92 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="sk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Impostor Online Pro</title>
+    <title>Impostor Elite</title>
     <style>
         body { -webkit-tap-highlight-color: transparent; }
         .safe-top { padding-top: env(safe-area-inset-top); }
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
 
 <div id="app" class="flex-1 flex flex-col w-full max-w-md mx-auto px-6 safe-top safe-bottom">
     
-    <div id="screen-login" class="flex-1 flex flex-col justify-center space-y-6">
-        <div class="text-center">
-            <h1 class="text-5xl font-black text-indigo-500 mb-2 tracking-tighter italic text-shadow-lg">IMPOSTOR</h1>
-            <p class="text-slate-500 uppercase tracking-widest text-xs font-bold italic">Online Multiplayer</p>
+    <div id="screen-mode" class="flex-1 flex flex-col justify-center space-y-6 fade-in">
+        <div class="text-center mb-8">
+            <h1 class="text-6xl font-black text-indigo-500 tracking-tighter italic">IMPOSTOR</h1>
+            <p class="text-slate-500 uppercase tracking-widest text-xs font-bold">Vyber si režim hry</p>
         </div>
+        <button onclick="setMode('online')" class="bg-indigo-600 p-6 rounded-3xl font-black text-xl shadow-xl active:scale-95 transition-all flex flex-col items-center">
+            <span>ONLINE HRA</span>
+            <span class="text-xs font-normal opacity-70">Každý na svojom mobile</span>
+        </button>
+        <button onclick="setMode('local')" class="bg-slate-800 p-6 rounded-3xl font-black text-xl border border-slate-700 active:scale-95 transition-all flex flex-col items-center">
+            <span>LOKÁLNA HRA</span>
+            <span class="text-xs font-normal opacity-70">Jeden mobil v kruhu</span>
+        </button>
+    </div>
+
+    <div id="screen-login" class="hidden flex-1 flex flex-col justify-center space-y-6 fade-in">
+        <button onclick="showScreen('screen-mode')" class="text-slate-500 text-sm font-bold uppercase tracking-widest self-start">← Späť</button>
         <div class="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 space-y-4 shadow-2xl">
-            <input type="text" id="user-name" placeholder="Tvoje jméno..." 
-                class="w-full bg-slate-800 border-none rounded-2xl p-4 text-lg outline-none focus:ring-2 focus:ring-indigo-500 text-white">
-            <input type="text" id="room-id" placeholder="Název místnosti" 
-                class="w-full bg-slate-800 border-none rounded-2xl p-4 text-lg outline-none focus:ring-2 focus:ring-indigo-500 uppercase text-white font-mono">
+            <input type="text" id="user-name" placeholder="Tvoje meno..." class="w-full bg-slate-800 border-none rounded-2xl p-4 text-lg text-white outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" id="room-id" placeholder="Názov miestnosti" class="w-full bg-slate-800 border-none rounded-2xl p-4 text-lg text-white uppercase font-mono outline-none focus:ring-2 focus:ring-indigo-500">
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="window.joinRoom(true)" class="bg-indigo-600 p-4 rounded-2xl font-bold active:scale-95 transition-all">ZALOŽIT</button>
-                <button onclick="window.joinRoom(false)" class="bg-slate-800 p-4 rounded-2xl font-bold active:scale-95 border border-slate-700">PŘIPOJIT</button>
+                <button onclick="window.joinRoom(true)" class="bg-indigo-600 p-4 rounded-2xl font-bold active:scale-95 transition-all">ZALOŽIŤ</button>
+                <button onclick="window.joinRoom(false)" class="bg-slate-800 p-4 rounded-2xl font-bold active:scale-95 border border-slate-700">PRIPOJIŤ</button>
             </div>
         </div>
     </div>
 
-    <div id="screen-lobby" class="hidden flex-1 flex flex-col py-6">
+    <div id="screen-local-setup" class="hidden flex-1 flex flex-col py-6 fade-in">
+        <button onclick="showScreen('screen-mode')" class="text-slate-500 text-sm font-bold uppercase tracking-widest self-start mb-6">← Späť</button>
+        <h2 class="text-2xl font-black mb-6">Lokálna party</h2>
+        <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex gap-2 mb-6">
+            <input type="text" id="local-player-name" placeholder="Meno hráča..." class="flex-1 bg-transparent border-none p-2 outline-none">
+            <button onclick="addLocalPlayer()" class="bg-indigo-600 px-4 py-2 rounded-xl font-bold">PRIDAŤ</button>
+        </div>
+        <ul id="local-player-list" class="flex-1 space-y-2 overflow-y-auto mb-6"></ul>
+        <button id="local-start-btn" onclick="startLocalGame()" class="hidden w-full bg-emerald-600 p-5 rounded-3xl font-black text-xl shadow-xl active:scale-95 transition-all uppercase">ŠTART</button>
+    </div>
+
+    <div id="screen-lobby" class="hidden flex-1 flex flex-col py-6 fade-in">
         <div class="flex justify-between items-center mb-8">
-            <button onclick="window.leaveRoom()" class="bg-slate-900 px-4 py-2 rounded-xl text-rose-500 font-bold text-xs border border-slate-800 active:scale-90 transition-all uppercase">Odejít</button>
-            <div class="text-right">
-                <span class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Místnost</span>
-                <h2 id="display-room" class="text-2xl font-black text-indigo-400 uppercase">---</h2>
-            </div>
+            <button onclick="window.leaveRoom()" class="text-rose-500 font-bold text-xs uppercase border border-slate-800 px-3 py-2 rounded-xl">Odísť</button>
+            <h2 id="display-room" class="text-2xl font-black text-indigo-400 uppercase tracking-widest font-mono">---</h2>
         </div>
-        
-        <div class="flex-1 space-y-4 overflow-y-auto">
-            <h3 class="text-sm font-bold text-slate-500 px-2 uppercase italic">Hráči v lobby:</h3>
-            <ul id="online-player-list" class="space-y-2"></ul>
-        </div>
-
-        <div class="pt-6 space-y-4">
-            <button id="host-start-btn" onclick="window.triggerGameStart()" 
-                class="hidden w-full bg-emerald-600 p-5 rounded-3xl font-black text-xl shadow-xl active:scale-95 transition-all">
-                START HRY
-            </button>
-            <p id="wait-msg" class="text-center text-slate-500 italic text-sm py-4">Čekáme na hostitele...</p>
+        <ul id="online-player-list" class="flex-1 space-y-2 overflow-y-auto"></ul>
+        <div id="lobby-footer" class="pt-6">
+            <button id="host-start-btn" onclick="window.triggerGameStart()" class="hidden w-full bg-emerald-600 p-5 rounded-3xl font-black text-xl shadow-xl active:scale-95 transition-all">ŠTART HRY</button>
+            <p id="wait-msg" class="text-center text-slate-500 italic text-sm py-4">Čakáme na hostiteľa...</p>
         </div>
     </div>
 
-    <div id="screen-game" class="hidden flex-1 flex flex-col justify-center py-6 text-center">
-        <div class="flex justify-between items-center mb-6 px-2">
-            <button onclick="window.leaveRoom()" class="text-rose-500 font-bold text-xs uppercase tracking-widest">Opustit hru</button>
-            <span id="game-room-name" class="text-slate-700 font-bold text-xs uppercase tracking-tighter font-mono"></span>
+    <div id="screen-game" class="hidden flex-1 flex flex-col justify-center py-6 fade-in text-center">
+        <div id="wait-for-round" class="hidden">
+            <h2 class="text-2xl font-black mb-4">Hra už prebieha...</h2>
+            <p class="text-slate-400 mb-8 italic">Počkaj, kým skončí aktuálne kolo. Potom ťa hostiteľ pridá.</p>
+            <button onclick="window.leaveRoom()" class="text-rose-500 uppercase font-bold text-sm tracking-widest">Opustiť miestnosť</button>
         </div>
 
-        <div class="bg-slate-900/80 p-8 rounded-[40px] border border-slate-800 space-y-8 shadow-2xl">
-            <div id="reveal-controls">
+        <div id="game-active-ui" class="space-y-8">
+            <div class="bg-slate-900/80 p-8 rounded-[40px] border border-slate-800 space-y-8 shadow-2xl">
                 <h2 id="player-turn-name" class="text-4xl font-black mb-6">---</h2>
-                <button onclick="window.revealMyRole()" class="w-full h-40 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl text-xl font-black shadow-2xl active:scale-95 transition-all">
-                    TAPNI PRO <br>ODHALENÍ ROLE
-                </button>
+                <button id="reveal-btn" onclick="window.revealMyRole()" class="w-full h-40 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl text-xl font-black active:scale-95 transition-all uppercase">TAPNI PRE ROLE</button>
+                <div id="role-info" class="hidden py-4">
+                    <p id="role-label" class="text-slate-500 text-xs uppercase font-bold mb-2"></p>
+                    <div id="role-word" class="text-5xl font-black mb-8 tracking-tighter italic">---</div>
+                    <button onclick="window.finishReveal()" class="w-full bg-slate-100 text-slate-950 font-bold py-4 rounded-2xl active:scale-95">ROZUMIEM</button>
+                </div>
             </div>
-            
-            <div id="role-info" class="hidden py-4">
-                <p id="role-label" class="text-slate-500 text-xs uppercase font-bold mb-2"></p>
-                <div id="role-word" class="text-5xl font-black mb-8 tracking-tighter italic">---</div>
-                <p class="text-slate-400 text-sm leading-relaxed px-4">
-                    Hledejte toho, kdo má nápovědu!
-                </p>
-            </div>
+            <button id="host-reset-btn" onclick="window.triggerGameStart()" class="hidden w-full bg-slate-800 py-4 rounded-2xl font-bold border border-slate-700 active:scale-95">ĎALŠIE KOLO</button>
+            <button id="local-lobby-btn" onclick="showScreen('screen-local-setup')" class="hidden w-full bg-slate-800 py-4 rounded-2xl font-bold border border-slate-700 active:scale-95">SPÄŤ DO LOBBY</button>
         </div>
-        <button id="host-reset-btn" onclick="window.triggerGameStart()" class="hidden mt-8 w-full bg-slate-800 py-4 rounded-2xl font-bold border border-slate-700 active:scale-95 transition-all">DALŠÍ KOLO</button>
     </div>
 
 </div>
@@ -100,167 +109,177 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let myId = localStorage.getItem('impostor_uid') || 'user_' + Math.random().toString(36).substring(2, 11);
+    let myId = localStorage.getItem('impostor_uid') || 'u_' + Math.random().toString(36).substring(2, 9);
     localStorage.setItem('impostor_uid', myId);
-    
-    let myName = localStorage.getItem('impostor_name') || '';
-    let myRoom = '';
-    let isHost = false;
 
-    document.getElementById('user-name').value = myName;
+    let isOnline = false;
+    let myRoom = '';
+    let localPlayers = JSON.parse(localStorage.getItem('impostor_local_players')) || [];
+    let localTurnIndex = 0;
 
     const items = [
-        { word: "Kladivo", hint: "Nářadí" }, { word: "Pánvička", hint: "Kuchyně" }, 
-        { word: "Notebook", hint: "Elektronika" }, { word: "Postel", hint: "Nábytek" },
-        { word: "Bunda", hint: "Oblečení" }, { word: "Kolo", hint: "Sport" },
-        { word: "Vrtačka", hint: "Nářadí" }, { word: "Mixér", hint: "Kuchyně" },
-        { word: "Lednice", hint: "Spotřebič" }, { word: "Tablet", hint: "Elektronika" },
-        { word: "Gauč", hint: "Nábytek" }, { word: "Boty", hint: "Oblečení" }
+        { word: "Kladivo", hint: "Náradie" }, { word: "Panvica", hint: "Kuchyňa" }, 
+        { word: "Notebook", hint: "Elektronika" }, { word: "Posteľ", hint: "Nábytok" },
+        { word: "Bunda", hint: "Oblečenie" }, { word: "Bicykel", hint: "Šport" },
+        { word: "Vŕtačka", hint: "Náradie" }, { word: "Mixér", hint: "Kuchyně" }
     ];
 
-    window.joinRoom = async function(create) {
-        const nameInput = document.getElementById('user-name').value.trim();
-        const roomInput = document.getElementById('room-id').value.trim().toUpperCase();
-        
-        if (!nameInput || !roomInput) return alert("Doplň jméno a kód místnosti!");
-        
-        const roomRef = ref(db, 'rooms/' + roomInput);
-        const snapshot = await get(roomRef);
-        const data = snapshot.val();
+    window.setMode = (mode) => {
+        isOnline = (mode === 'online');
+        showScreen(isOnline ? 'screen-login' : 'screen-local-setup');
+        if (!isOnline) renderLocalPlayers();
+    };
 
-        // Ošetření existence místnosti: Pokud existuje a má aspoň jednoho hráče
-        if (create) {
-            if (data && data.players && Object.keys(data.players).length > 0) {
-                return alert("Místnost už existuje a někdo v ní je!");
-            }
-            // Založení nebo přepsání prázdné místnosti
-            await update(roomRef, {
-                status: 'lobby',
-                hostId: myId,
-                createdAt: Date.now()
-            });
-        } else {
-            if (!data || !data.players) return alert("Místnost neexistuje!");
+    // --- LOKÁLNA LOGIKA ---
+    window.addLocalPlayer = () => {
+        const input = document.getElementById('local-player-name');
+        if (input.value.trim()) {
+            localPlayers.push(input.value.trim());
+            input.value = '';
+            localStorage.setItem('impostor_local_players', JSON.stringify(localPlayers));
+            renderLocalPlayers();
         }
-
-        myName = nameInput;
-        myRoom = roomInput;
-        localStorage.setItem('impostor_name', myName);
-
-        const myPlayerRef = ref(db, 'rooms/' + myRoom + '/players/' + myId);
-        await update(myPlayerRef, { name: myName, id: myId });
-
-        // AUTOMATICKÉ SMAZÁNÍ PŘI ODPOJENÍ
-        onDisconnect(myPlayerRef).remove();
-
-        listenToRoom();
-        document.getElementById('display-room').innerText = myRoom;
-        document.getElementById('game-room-name').innerText = myRoom;
     };
 
-    window.kickPlayer = function(targetId) {
-        if (!isHost) return;
-        remove(ref(db, 'rooms/' + myRoom + '/players/' + targetId));
-    };
-
-    window.leaveRoom = async function() {
-        if (!myRoom) return;
-        off(ref(db, 'rooms/' + myRoom));
-        await remove(ref(db, 'rooms/' + myRoom + '/players/' + myId));
-        resetUI();
-    };
-
-    function resetUI() {
-        myRoom = '';
-        isHost = false;
-        showScreen('screen-login');
+    function renderLocalPlayers() {
+        const list = document.getElementById('local-player-list');
+        list.innerHTML = localPlayers.map((p, i) => `
+            <li class="bg-slate-900 p-4 rounded-xl flex justify-between items-center">
+                <span class="font-bold">👤 ${p}</span>
+                <button onclick="removeLocalPlayer(${i})" class="text-rose-500 font-bold px-2">×</button>
+            </li>
+        `).join('');
+        document.getElementById('local-start-btn').classList.toggle('hidden', localPlayers.length < 3);
     }
 
+    window.removeLocalPlayer = (i) => {
+        localPlayers.splice(i, 1);
+        localStorage.setItem('impostor_local_players', JSON.stringify(localPlayers));
+        renderLocalPlayers();
+    };
+
+    window.startLocalGame = () => {
+        const item = items[Math.floor(Math.random() * items.length)];
+        const impIdx = Math.floor(Math.random() * localPlayers.length);
+        window.currentGameState = { impostorId: impIdx, word: item.word, hint: item.hint };
+        localTurnIndex = 0;
+        showScreen('screen-game');
+        document.getElementById('local-lobby-btn').classList.add('hidden');
+        updateLocalTurn();
+    };
+
+    function updateLocalTurn() {
+        document.getElementById('player-turn-name').innerText = localPlayers[localTurnIndex];
+        document.getElementById('reveal-btn').classList.remove('hidden');
+        document.getElementById('role-info').classList.add('hidden');
+    }
+
+    // --- ONLINE LOGIKA ---
+    window.joinRoom = async (create) => {
+        const name = document.getElementById('user-name').value.trim();
+        const room = document.getElementById('room-id').value.trim().toUpperCase();
+        if (!name || !room) return alert("Doplň meno a miestnosť!");
+
+        const roomRef = ref(db, 'rooms/' + room);
+        const snap = await get(roomRef);
+        const data = snap.val();
+
+        if (create && data && data.players && Object.keys(data.players).length > 0) return alert("Miestnosť už existuje!");
+        if (!create && !data) return alert("Miestnosť neexistuje!");
+
+        myRoom = room;
+        localStorage.setItem('impostor_name', name);
+        if (create) await update(roomRef, { status: 'lobby', hostId: myId, createdAt: Date.now() });
+        
+        const myPlayerRef = ref(db, 'rooms/' + myRoom + '/players/' + myId);
+        await update(myPlayerRef, { name, id: myId });
+        onDisconnect(myPlayerRef).remove();
+        listenToRoom();
+    };
+
     function listenToRoom() {
-        onValue(ref(db, 'rooms/' + myRoom), (snapshot) => {
-            const data = snapshot.val();
-            
-            // 1. Kontrola, zda mě někdo nevyhodil nebo zda místnost existuje
-            if (!data || !data.players || !data.players[myId]) {
-                if (myRoom) alert("Byl jsi odpojen nebo místnost zanikla.");
-                resetUI();
-                return;
-            }
+        onValue(ref(db, 'rooms/' + myRoom), (snap) => {
+            const data = snap.val();
+            if (!data || !data.players || !data.players[myId]) return resetUI();
 
-            const players = data.players;
-            const playerIds = Object.keys(players);
-            
-            // 2. LOGIKA PŘEDÁNÍ HOSTITELE (Host Migration)
-            // Pokud aktuální hostId není v seznamu hráčů, nejstarší hráč (první v poli) se stane hostem
-            if (!players[data.hostId]) {
-                const newHostId = playerIds.sort()[0]; 
-                update(ref(db, 'rooms/' + myRoom), { hostId: newHostId });
-                return; // Počkáme na další update z Firebase
-            }
+            const pArray = Object.values(data.players);
+            const isHost = (data.hostId === myId);
 
-            isHost = (data.hostId === myId);
+            document.getElementById('online-player-list').innerHTML = pArray.map(p => `
+                <li class="bg-slate-900 border ${p.id === myId ? 'border-indigo-500' : 'border-slate-800'} p-4 rounded-xl flex justify-between items-center">
+                    <span>${p.id === data.hostId ? '👑 ' : ''}${p.name}</span>
+                    ${isHost && p.id !== myId ? `<button onclick="kickPlayer('${p.id}')" class="text-rose-500 font-bold px-2">×</button>` : ''}
+                </li>`).join('');
 
-            // 3. Renderování seznamu hráčů s tlačítkem Kick
-            document.getElementById('online-player-list').innerHTML = playerIds.map(id => {
-                const p = players[id];
-                const isMe = id === myId;
-                const isTargetHost = id === data.hostId;
-                
-                return `
-                <li class="bg-slate-900 border ${isMe ? 'border-indigo-500' : 'border-slate-800'} p-4 rounded-2xl flex justify-between items-center">
-                    <span class="font-bold">${isTargetHost ? '👑 ' : ''}${p.name}</span>
-                    <div class="flex items-center gap-3">
-                        ${isMe ? '<span class="text-[10px] text-indigo-400 font-bold uppercase">Ty</span>' : ''}
-                        ${isHost && !isMe ? `<button onclick="window.kickPlayer('${id}')" class="text-rose-500 text-xl font-black px-2">×</button>` : ''}
-                    </div>
-                </li>`;
-            }).join('');
-
-            // 4. Stavy hry
             if (data.status === 'lobby') {
                 showScreen('screen-lobby');
-                document.getElementById('host-start-btn').classList.toggle('hidden', !isHost || playerIds.length < 3);
+                document.getElementById('display-room').innerText = myRoom;
+                document.getElementById('host-start-btn').classList.toggle('hidden', !isHost || pArray.length < 3);
                 document.getElementById('wait-msg').classList.toggle('hidden', isHost);
             } else if (data.status === 'playing') {
                 showScreen('screen-game');
-                window.currentGameState = data.gameState;
-                document.getElementById('player-turn-name').innerText = myName;
-                document.getElementById('reveal-controls').classList.remove('hidden');
-                document.getElementById('role-info').classList.add('hidden');
-                document.getElementById('host-reset-btn').classList.toggle('hidden', !isHost);
+                // LOGIKA PRE NESKORÉHO HRÁČA
+                const inRound = data.gameState.activePlayers.includes(myId);
+                document.getElementById('wait-for-round').classList.toggle('hidden', inRound);
+                document.getElementById('game-active-ui').classList.toggle('hidden', !inRound);
+                
+                if (inRound) {
+                    window.currentGameState = data.gameState;
+                    document.getElementById('player-turn-name').innerText = data.players[myId].name;
+                    document.getElementById('host-reset-btn').classList.toggle('hidden', !isHost);
+                    document.getElementById('reveal-btn').classList.remove('hidden');
+                    document.getElementById('role-info').classList.add('hidden');
+                }
             }
         });
     }
 
-    window.triggerGameStart = function() {
-        get(ref(db, 'rooms/' + myRoom + '/players')).then((snap) => {
-            const ids = Object.keys(snap.val());
-            const impIdx = Math.floor(Math.random() * ids.length);
-            const item = items[Math.floor(Math.random() * items.length)];
-
-            update(ref(db, 'rooms/' + myRoom), {
-                status: 'playing',
-                gameState: {
-                    impostorId: ids[impIdx],
-                    word: item.word,
-                    hint: item.hint
-                }
-            });
+    window.triggerGameStart = async () => {
+        const snap = await get(ref(db, 'rooms/' + myRoom + '/players'));
+        const ids = Object.keys(snap.val());
+        const item = items[Math.floor(Math.random() * items.length)];
+        update(ref(db, 'rooms/' + myRoom), {
+            status: 'playing',
+            gameState: {
+                impostorId: ids[Math.floor(Math.random() * ids.length)],
+                word: item.word,
+                hint: item.hint,
+                activePlayers: ids
+            }
         });
     };
 
-    window.revealMyRole = function() {
+    // --- ZDIEĽANÁ LOGIKA ---
+    window.revealMyRole = () => {
         const state = window.currentGameState;
-        const isImp = myId === state.impostorId;
-        document.getElementById('role-label').innerText = isImp ? "Jsi IMPOSTOR. Kategorie:" : "Jsi CIVILISTA. Předmět:";
+        const isImp = isOnline ? (myId === state.impostorId) : (localTurnIndex === state.impostorId);
+        document.getElementById('role-label').innerText = isImp ? "Si IMPOSTOR. Kategória:" : "Si CIVILISTA. Predmet:";
         document.getElementById('role-word').innerText = isImp ? state.hint : state.word;
-        document.getElementById('role-word').className = `text-5xl font-black mb-8 tracking-tighter ${isImp ? 'text-rose-500' : 'text-emerald-400'}`;
-        document.getElementById('reveal-controls').classList.add('hidden');
+        document.getElementById('role-word').className = `text-5xl font-black mb-8 ${isImp ? 'text-rose-500' : 'text-emerald-400'}`;
+        document.getElementById('reveal-btn').classList.add('hidden');
         document.getElementById('role-info').classList.remove('hidden');
     };
 
-    function showScreen(id) {
-        ['screen-login', 'screen-lobby', 'screen-game'].forEach(s => document.getElementById(s).classList.add('hidden'));
+    window.finishReveal = () => {
+        if (!isOnline) {
+            localTurnIndex++;
+            if (localTurnIndex < localPlayers.length) {
+                updateLocalTurn();
+            } else {
+                document.getElementById('player-turn-name').innerText = "Hra beží! 🕵️‍♂️";
+                document.getElementById('role-info').classList.add('hidden');
+                document.getElementById('local-lobby-btn').classList.remove('hidden');
+            }
+        } else {
+            document.getElementById('role-info').classList.add('hidden');
+            document.getElementById('player-turn-name').innerText = "Čakaj na ostatných...";
+        }
+    };
+
+    window.leaveRoom = () => { if(myRoom) remove(ref(db, 'rooms/'+myRoom+'/players/'+myId)); resetUI(); };
+    function resetUI() { myRoom = ''; showScreen('screen-mode'); off(ref(db, 'rooms')); }
+    function showScreen(id) { 
+        ['screen-mode','screen-login','screen-local-setup','screen-lobby','screen-game'].forEach(s => document.getElementById(s).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     }
 </script>
