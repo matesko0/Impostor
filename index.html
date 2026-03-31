@@ -11,6 +11,10 @@
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Vlastní scrollbar pro seznamy */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
@@ -63,7 +67,7 @@
                 <h2 id="display-room" class="text-2xl font-black text-indigo-400 uppercase tracking-widest font-mono">---</h2>
             </div>
         </div>
-        <ul id="online-player-list" class="flex-1 space-y-2 overflow-y-auto"></ul>
+        <ul id="online-player-list" class="flex-1 space-y-2 overflow-y-auto pr-2"></ul>
         <div id="lobby-footer" class="pt-6">
             <button id="host-start-btn" onclick="window.triggerGameStart()" class="hidden w-full bg-emerald-600 p-5 rounded-3xl font-black text-xl shadow-xl active:scale-95 transition-all text-white">START HRY</button>
             <p id="wait-msg" class="text-center text-slate-500 italic text-sm py-4">Čekáme na hostitele...</p>
@@ -78,7 +82,7 @@
             <button onclick="window.leaveRoom()" class="text-rose-500 uppercase font-bold text-sm tracking-widest bg-slate-900 border border-slate-800 px-6 py-4 rounded-2xl active:scale-95">Opustit místnost</button>
         </div>
 
-        <div id="game-active-ui" class="space-y-6">
+        <div id="game-active-ui" class="space-y-6 flex-1 flex flex-col justify-center">
             <div class="bg-slate-900/80 p-8 rounded-[40px] border border-slate-800 shadow-2xl min-h-[300px] flex flex-col justify-center">
                 <span class="text-indigo-400 font-bold uppercase text-xs tracking-widest block mb-4" id="turn-subtitle">Na řadě je</span>
                 <h2 id="player-turn-name" class="text-4xl font-black mb-6">---</h2>
@@ -100,10 +104,15 @@
 
                 <div id="end-round-ui" class="hidden py-4">
                     <p class="text-rose-500 font-bold uppercase tracking-widest text-sm mb-2">Impostor byl</p>
-                    <h3 id="impostor-name-display" class="text-5xl font-black text-white mb-8">---</h3>
-                    <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-                        <p class="text-slate-400 text-xs uppercase font-bold mb-1">Hledané slovo</p>
+                    <h3 id="impostor-name-display" class="text-5xl font-black text-white mb-6">---</h3>
+                    <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800 mb-6">
+                        <p class="text-slate-500 text-xs uppercase font-bold mb-1">Hledané slovo</p>
                         <p id="revealed-word" class="text-2xl font-black text-emerald-400">---</p>
+                    </div>
+                    
+                    <div id="end-round-management" class="text-left bg-slate-900/50 rounded-2xl p-4 border border-slate-800/50 hidden">
+                        <p class="text-slate-400 text-xs uppercase font-bold mb-3 tracking-widest">Správa hráčů</p>
+                        <ul id="end-round-player-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></ul>
                     </div>
                 </div>
             </div>
@@ -228,6 +237,7 @@
         document.getElementById('player-turn-name').innerText = "Výsledek";
         
         document.getElementById('end-round-ui').classList.remove('hidden');
+        document.getElementById('end-round-management').classList.add('hidden');
         document.getElementById('impostor-name-display').innerText = localPlayers[window.currentGameState.impostorId];
         document.getElementById('revealed-word').innerText = window.currentGameState.word;
         
@@ -280,14 +290,18 @@
             const pArray = Object.values(playersData);
             isHost = (data.hostId === myId);
 
-            document.getElementById('online-player-list').innerHTML = pArray.map(p => `
-                <li class="bg-slate-900 border ${p.id === myId ? 'border-indigo-500' : 'border-slate-800'} p-4 rounded-xl flex justify-between items-center fade-in">
+            // Generování HTML pro seznam hráčů (používá se v lobby i na konci kola)
+            const playerListHTML = pArray.map(p => `
+                <li class="bg-slate-950/50 border ${p.id === myId ? 'border-indigo-500' : 'border-slate-800'} p-3 rounded-xl flex justify-between items-center fade-in">
                     <div class="flex items-center gap-3">
                         <span class="w-2 h-2 rounded-full ${p.isOnline ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-rose-500/50'}"></span>
-                        <span class="${p.isOnline ? 'text-white' : 'text-slate-500'} font-bold">${p.id === data.hostId ? '👑 ' : ''}${p.name}</span>
+                        <span class="${p.isOnline ? 'text-white' : 'text-slate-500'} font-bold text-sm">${p.id === data.hostId ? '👑 ' : ''}${p.name}</span>
                     </div>
-                    ${isHost && p.id !== myId ? `<button onclick="window.kickPlayer('${p.id}')" class="text-rose-500 font-bold px-4 py-2 bg-slate-950 rounded-lg">×</button>` : ''}
+                    ${isHost && p.id !== myId ? `<button onclick="window.kickPlayer('${p.id}')" class="text-rose-500 font-bold px-3 py-1 bg-slate-900 rounded-lg text-lg">×</button>` : ''}
                 </li>`).join('');
+
+            document.getElementById('online-player-list').innerHTML = playerListHTML;
+            document.getElementById('end-round-player-list').innerHTML = playerListHTML;
 
             if (data.status === 'lobby') {
                 window.showScreen('screen-lobby');
@@ -306,7 +320,7 @@
                     window.currentGameState = data.gameState;
                     
                     if (data.gameState.isRevealed) {
-                        // FÁZE 3: Odhalení Impostora
+                        // FÁZE 3: Odhalení Impostora a správa hráčů
                         document.getElementById('reveal-btn').classList.add('hidden');
                         document.getElementById('role-info').classList.add('hidden');
                         document.getElementById('discussion-ui').classList.add('hidden');
@@ -316,10 +330,12 @@
                         document.getElementById('player-turn-name').innerText = "Výsledek";
                         
                         document.getElementById('end-round-ui').classList.remove('hidden');
+                        document.getElementById('end-round-management').classList.remove('hidden');
                         document.getElementById('impostor-name-display').innerText = playersData[data.gameState.impostorId].name;
                         document.getElementById('revealed-word').innerText = data.gameState.word;
                         
-                        document.getElementById('host-reset-btn').classList.toggle('hidden', !isHost);
+                        // Zobrazení tlačítka nová hra, pokud je host a je dostatek hráčů
+                        document.getElementById('host-reset-btn').classList.toggle('hidden', !isHost || pArray.length < 3);
                     } else {
                         document.getElementById('end-round-ui').classList.add('hidden');
                         document.getElementById('host-reset-btn').classList.add('hidden');
@@ -357,77 +373,3 @@
         update(ref(db, 'rooms/' + myRoom), {
             status: 'playing',
             gameState: {
-                roundId: Date.now(),
-                isRevealed: false,
-                impostorId: ids[Math.floor(Math.random() * ids.length)],
-                startingPlayerId: ids[Math.floor(Math.random() * ids.length)],
-                word: item.word,
-                hint: item.hint,
-                activePlayers: ids
-            }
-        });
-    };
-
-    // OPRAVA: Metoda update() v Firebase SDK potřebuje objekt
-    window.endRound = () => {
-        update(ref(db, 'rooms/' + myRoom + '/gameState'), {
-            isRevealed: true
-        });
-    };
-
-    // --- SDÍLENÁ LOGIKA ---
-    window.revealMyRole = () => {
-        const state = window.currentGameState;
-        const isImp = isOnline ? (myId === state.impostorId) : (localTurnIndex === state.impostorId);
-        document.getElementById('role-label').innerText = isImp ? "Jsi IMPOSTOR. Kategorie:" : "Jsi CIVILISTA. Předmět:";
-        document.getElementById('role-word').innerText = isImp ? state.hint : state.word;
-        document.getElementById('role-word').className = `text-5xl font-black mb-8 tracking-tighter italic ${isImp ? 'text-rose-500' : 'text-emerald-400'}`;
-        document.getElementById('reveal-btn').classList.add('hidden');
-        document.getElementById('role-info').classList.remove('hidden');
-    };
-
-    window.finishReveal = () => {
-        hasFinishedReveal = true;
-        if (!isOnline) {
-            localTurnIndex++;
-            if (localTurnIndex < localPlayers.length) {
-                window.updateLocalTurn();
-                hasFinishedReveal = false;
-            } else {
-                document.getElementById('turn-subtitle').innerText = "Diskuze";
-                document.getElementById('player-turn-name').innerText = "Hledejte impostora";
-                document.getElementById('role-info').classList.add('hidden');
-                document.getElementById('discussion-ui').classList.remove('hidden');
-                document.getElementById('starting-player-name').innerText = localPlayers[window.currentGameState.startingPlayerIndex];
-                document.getElementById('local-end-round-btn').classList.remove('hidden');
-            }
-        } else {
-            // Online verze
-            document.getElementById('role-info').classList.add('hidden');
-            document.getElementById('discussion-ui').classList.remove('hidden');
-            document.getElementById('turn-subtitle').innerText = "Diskuze";
-            document.getElementById('player-turn-name').innerText = "Hledejte impostora";
-            
-            get(ref(db, 'rooms/' + myRoom + '/players/' + window.currentGameState.startingPlayerId)).then(snap => {
-                document.getElementById('starting-player-name').innerText = snap.val().name;
-            });
-
-            if (isHost) {
-                document.getElementById('host-end-round-btn').classList.remove('hidden');
-            }
-        }
-    };
-
-    window.leaveRoom = () => { 
-        if(myRoom) remove(ref(db, 'rooms/'+myRoom+'/players/'+myId)); 
-        window.resetUI(); 
-    };
-
-    window.resetUI = () => { 
-        myRoom = ''; 
-        window.showScreen('screen-mode'); 
-        off(ref(db, 'rooms')); 
-    };
-</script>
-</body>
-</html>
