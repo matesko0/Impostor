@@ -1,3 +1,10 @@
+Tohle je klasická past při práci s databázemi v reálném čase! Děje se to proto, že když se někdo nový připojí do rozjeté hry, Firebase automaticky pošle všem v místnosti "čerstvá data". A tvůj mobil si řekl: *"Aha, přišla data, tak já ten text na obrazovce radši přepíšu zpátky na jméno hráče"*, i když ty už jsi dávno kliknul na "ROZUMÍM".
+
+Oprava je vlastně hrozně jednoduchá. Musíme tomu kódu říct, ať ti na ty texty a tlačítka nesahá, pokud se zrovna nezačalo úplně nové kolo. Zároveň jsem vylepšil to "Rozumím" – po odkliknutí ti to jasně napíše, že probíhá diskuze.
+
+Tady je finální opravený `index.html`. Stačí to celé přepsat:
+
+```html
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -240,22 +247,21 @@
             } else if (data.status === 'playing') {
                 window.showScreen('screen-game');
                 
-                // Zkontrolujeme, jestli hráč hraje v tomto kole
                 const inRound = data.gameState.activePlayers.includes(myId);
                 document.getElementById('wait-for-round').classList.toggle('hidden', inRound);
                 document.getElementById('game-active-ui').classList.toggle('hidden', !inRound);
                 
                 if (inRound) {
-                    // Detekce nového kola podle roundId
                     const isNewRound = !window.currentGameState || window.currentGameState.roundId !== data.gameState.roundId;
                     window.currentGameState = data.gameState;
                     
-                    document.getElementById('turn-subtitle').innerText = "Tvoje role";
-                    document.getElementById('player-turn-name').innerText = data.players[myId].name;
                     document.getElementById('host-reset-btn').classList.toggle('hidden', !isHost);
                     
-                    // Schováme slovo jen když je to nové kolo, aby se to neresetovalo při připojení někoho cizího
+                    // ZDE JE OPRAVA: Resetujeme UI hráče pouze tehdy, pokud je to skutečně nové kolo.
+                    // Pokud se jen někdo připojil do místnosti uprostřed hry, necháme UI v klidu.
                     if (isNewRound) {
+                        document.getElementById('turn-subtitle').innerText = "Tvoje role";
+                        document.getElementById('player-turn-name').innerText = data.players[myId].name;
                         document.getElementById('reveal-btn').classList.remove('hidden');
                         document.getElementById('role-info').classList.add('hidden');
                     }
@@ -280,7 +286,7 @@
         });
     };
 
-    // --- ZDIEĽANÁ LOGIKA ---
+    // --- SDÍLENÁ LOGIKA ---
     window.revealMyRole = () => {
         const state = window.currentGameState;
         const isImp = isOnline ? (myId === state.impostorId) : (localTurnIndex === state.impostorId);
@@ -303,9 +309,10 @@
                 document.getElementById('local-lobby-btn').classList.remove('hidden');
             }
         } else {
-            // V online verzi po kliknutí na rozumím stačí nechat slovo viditelné nebo přepsat nadpis
+            // ZDE JE OPRAVA PRO ONLINE: Nastavíme jasný text a schováme informace.
             document.getElementById('role-info').classList.add('hidden');
-            document.getElementById('player-turn-name').innerText = "Čekej na diskuzi...";
+            document.getElementById('turn-subtitle').innerText = "Diskuze";
+            document.getElementById('player-turn-name').innerText = "Hledejte impostora...";
         }
     };
 
@@ -322,3 +329,4 @@
 </script>
 </body>
 </html>
+```
