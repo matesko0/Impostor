@@ -3,114 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>Impostor PWA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Impostor Online</title>
     <style>
-        :root { --primary: #007aff; --success: #34c759; --danger: #ff3b30; --bg: #000000; --card: #1c1c1e; --text: #ffffff; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-        body { font-family: -apple-system, system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; min-height: 100vh; padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom) 20px; }
-        #game-container { flex: 1; display: flex; flex-direction: column; max-width: 500px; margin: 0 auto; width: 100%; justify-content: center; }
-        .card { background: var(--card); padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; }
-        input { width: 100%; padding: 18px; margin: 15px 0; border: none; border-radius: 15px; background: #2c2c2e; color: white; font-size: 17px; user-select: text; }
-        button { width: 100%; padding: 18px; margin: 10px 0; border: none; border-radius: 15px; font-weight: 600; font-size: 18px; transition: transform 0.1s; }
-        button:active { transform: scale(0.96); opacity: 0.8; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-reveal { background: linear-gradient(135deg, #5856d6, #af52de); height: 180px; font-size: 22px; }
-        .hidden { display: none; }
-        ul { list-style: none; padding: 0; margin: 20px 0; max-height: 200px; overflow-y: auto; }
-        li { background: #2c2c2e; padding: 12px; margin-bottom: 6px; border-radius: 12px; text-align: left; }
-        .word-box { font-size: 35px; font-weight: 800; margin: 30px 0; }
+        body { -webkit-tap-highlight-color: transparent; }
+        .safe-top { padding-top: env(safe-area-inset-top); }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
 
-<div id="game-container">
-    <div id="setup-screen" class="card">
-        <h1>Impostor</h1>
-        <input type="text" id="player-name" placeholder="Jméno hráče..." autocomplete="off">
-        <button class="btn-primary" onclick="addPlayer()">Přidat</button>
-        <ul id="player-list"></ul>
-        <button class="btn-success hidden" id="start-btn" onclick="startGame()">START</button>
-    </div>
-
-    <div id="reveal-screen" class="card hidden">
-        <p id="turn-info">Na řadě je</p>
-        <h2 id="turn-name">---</h2>
-        <button class="btn-reveal" id="reveal-btn" onclick="toggleWord()">UKÁZAT SLOVO</button>
-        <div id="word-display" class="hidden">
-            <div class="word-box" id="word-text"></div>
-            <button class="btn-primary" onclick="nextTurn()">HOTOVO</button>
+<div id="app" class="flex-1 flex flex-col w-full max-w-md mx-auto px-6 safe-top safe-bottom">
+    
+    <div id="screen-login" class="flex-1 flex flex-col justify-center space-y-6 fade-in">
+        <div class="text-center">
+            <h1 class="text-5xl font-black text-indigo-500 mb-2 tracking-tighter italic">IMPOSTOR</h1>
+            <p class="text-slate-500 uppercase tracking-widest text-xs font-bold">Online Multiplayer</p>
+        </div>
+        <div class="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 space-y-4">
+            <input type="text" id="user-name" placeholder="Tvoje jméno..." 
+                class="w-full bg-slate-800 border-none rounded-2xl p-4 text-lg outline-none focus:ring-2 focus:ring-indigo-500 text-white">
+            <input type="text" id="room-id" placeholder="Místnost (např. Pivo)" 
+                class="w-full bg-slate-800 border-none rounded-2xl p-4 text-lg outline-none focus:ring-2 focus:ring-indigo-500 uppercase text-white font-mono">
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="window.joinRoom(true)" class="bg-indigo-600 p-4 rounded-2xl font-bold active:scale-95 transition-all">ZALOŽIT</button>
+                <button onclick="window.joinRoom(false)" class="bg-slate-800 p-4 rounded-2xl font-bold active:scale-95 transition-all border border-slate-700">PŘIPOJIT</button>
+            </div>
         </div>
     </div>
 
-    <div id="play-screen" class="card hidden">
-        <h2>Hra běží! 🕵️‍♂️</h2>
-        <p>Najděte vetřelce mezi vámi.</p>
-        <button class="btn-primary" onclick="location.reload()">Nová hra</button>
+    <div id="screen-lobby" class="hidden flex-1 flex flex-col py-6 fade-in">
+        <div class="text-center mb-8">
+            <span class="text-slate-500 text-xs font-bold uppercase tracking-widest">Místnost</span>
+            <h2 id="display-room" class="text-3xl font-black text-indigo-400 uppercase">---</h2>
+        </div>
+        
+        <div class="flex-1 space-y-4 overflow-y-auto">
+            <h3 class="text-sm font-bold text-slate-500 px-2 uppercase italic">Hráči v lobby:</h3>
+            <ul id="online-player-list" class="space-y-2"></ul>
+        </div>
+
+        <div class="pt-6 space-y-4">
+            <button id="host-start-btn" onclick="window.triggerGameStart()" 
+                class="hidden w-full bg-emerald-600 p-5 rounded-3xl font-black text-xl shadow-xl shadow-emerald-900/20 active:scale-95 transition-all">
+                START HRY
+            </button>
+            <p id="wait-msg" class="text-center text-slate-500 italic text-sm py-4">Čekáme, až hostitel spustí hru...</p>
+        </div>
     </div>
+
+    <div id="screen-game" class="hidden flex-1 flex flex-col justify-center py-6 fade-in text-center">
+        <div class="bg-slate-900/80 p-8 rounded-[40px] border border-slate-800 space-y-8 shadow-2xl">
+            <div id="reveal-controls">
+                <h2 id="player-turn-name" class="text-3xl font-black mb-2">---</h2>
+                <p class="text-indigo-400 font-bold uppercase text-xs tracking-widest mb-6 italic">Tvá role v tomto kole</p>
+                <button onclick="window.revealMyRole()" class="w-full h-40 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl text-xl font-black shadow-2xl shadow-indigo-500/20 active:scale-95 transition-all uppercase tracking-tighter">
+                    TAPNI PRO <br>ODHALENÍ
+                </button>
+            </div>
+            
+            <div id="role-info" class="hidden py-4 animate-in zoom-in duration-300">
+                <p id="role-label" class="text-slate-500 text-xs uppercase font-bold mb-2"></p>
+                <div id="role-word" class="text-5xl font-black mb-8 tracking-tighter">---</div>
+                <p class="text-slate-400 text-sm leading-relaxed">Teď mluvte a hledejte impostora! <br>Ten má jen nápovědu.</p>
+            </div>
+        </div>
+        <button id="host-reset-btn" onclick="window.triggerGameStart()" class="hidden mt-8 w-full bg-slate-800 py-4 rounded-2xl font-bold border border-slate-700 active:scale-95 transition-all">DALŠÍ KOLO</button>
+    </div>
+
 </div>
 
-<script>
-    let players = [];
-    let impostorIndex = -1;
-    let currentIndex = 0;
-    const wordPairs = [
-        { normal: "Pivo", impostor: "Víno" },
-        { normal: "Hokej", impostor: "Fotbal" },
-        { normal: "Instagram", impostor: "TikTok" },
-        { normal: "Kofola", impostor: "Cola" },
-        { normal: "iPhone", impostor: "Android" },
-        { normal: "Káva", impostor: "Čaj" }
+<script type="module">
+    // Firebase SDK z tvé verze (přidaná Database)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+    // TVÁ KONFIGURACE, KTEROU JSI POSLAL
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7CZjBnw597T5IsC00-2iAcuVdqegq7wU",
+        authDomain: "impos-9d3d4.firebaseapp.com",
+        databaseURL: "https://impos-9d3d4-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "impos-9d3d4",
+        storageBucket: "impos-9d3d4.firebasestorage.app",
+        messagingSenderId: "909569492432",
+        appId: "1:909569492432:web:18fdf5a73d46129ef9a5d5",
+        measurementId: "G-N6YSHR8CRN"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let myId = localStorage.getItem('impostor_uid') || Math.random().toString(36).substring(7);
+    localStorage.setItem('impostor_uid', myId);
+    
+    let myName = localStorage.getItem('impostor_name') || '';
+    let myRoom = '';
+    let isHost = false;
+
+    document.getElementById('user-name').value = myName;
+
+    // DATA: Téma Věci (Items)
+    const items = [
+        { word: "Kladivo", hint: "Nářadí" }, { word: "Pánvička", hint: "Kuchyně" }, 
+        { word: "Notebook", hint: "Elektronika" }, { word: "Postel", hint: "Nábytek" },
+        { word: "Bunda", hint: "Oblečení" }, { word: "Kolo", hint: "Sport" },
+        { word: "Vrtačka", hint: "Nářadí" }, { word: "Mixér", hint: "Kuchyně" },
+        { word: "Lednice", hint: "Spotřebič" }, { word: "Tablet", hint: "Elektronika" },
+        { word: "Gauč", hint: "Nábytek" }, { word: "Boty", hint: "Oblečení" },
+        { word: "Sluchátka", hint: "Elektronika" }, { word: "Klíče", hint: "Kapsa" },
+        { word: "Zrcadlo", hint: "Koupelna" }, { word: "Batoh", hint: "Záda" }
     ];
-    let currentPair = {};
 
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
-    }
+    window.joinRoom = function(create) {
+        myName = document.getElementById('user-name').value.trim();
+        myRoom = document.getElementById('room-id').value.trim().toUpperCase();
+        
+        if (!myName || !myRoom) return alert("Doplň jméno a místnost!");
+        
+        localStorage.setItem('impostor_name', myName);
+        isHost = create;
 
-    function addPlayer() {
-        const input = document.getElementById('player-name');
-        if (input.value.trim()) {
-            players.push(input.value.trim());
-            input.value = '';
-            document.getElementById('player-list').innerHTML = players.map(p => `<li>👤 ${p}</li>`).join('');
-            if (players.length >= 3) document.getElementById('start-btn').classList.remove('hidden');
+        const roomRef = ref(db, 'rooms/' + myRoom);
+        
+        if (isHost) {
+            set(roomRef, {
+                status: 'lobby',
+                hostId: myId,
+                createdAt: Date.now()
+            });
         }
+
+        set(ref(db, 'rooms/' + myRoom + '/players/' + myId), {
+            name: myName,
+            id: myId
+        });
+
+        listenToRoom();
+        document.getElementById('display-room').innerText = myRoom;
+    };
+
+    function listenToRoom() {
+        onValue(ref(db, 'rooms/' + myRoom), (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            const players = data.players || {};
+            const playerArray = Object.values(players);
+            
+            // List hráčů v reálném čase
+            document.getElementById('online-player-list').innerHTML = playerArray.map(p => `
+                <li class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex justify-between items-center fade-in">
+                    <span class="font-bold tracking-tight">${p.id === data.hostId ? '👑 ' : ''}${p.name}</span>
+                    <span class="text-[10px] text-slate-600 font-mono tracking-widest">${p.id === myId ? 'TY' : 'ONLINE'}</span>
+                </li>
+            `).join('');
+
+            // Přepínání obrazovek
+            if (data.status === 'lobby') {
+                showScreen('screen-lobby');
+                document.getElementById('host-start-btn').classList.toggle('hidden', myId !== data.hostId || playerArray.length < 3);
+                document.getElementById('wait-msg').classList.toggle('hidden', myId === data.hostId);
+            } else if (data.status === 'playing') {
+                showScreen('screen-game');
+                window.currentGameState = data.gameState;
+                document.getElementById('player-turn-name').innerText = myName;
+                document.getElementById('reveal-controls').classList.remove('hidden');
+                document.getElementById('role-info').classList.add('hidden');
+                document.getElementById('host-reset-btn').classList.toggle('hidden', myId !== data.hostId);
+            }
+        });
     }
 
-    function startGame() {
-        impostorIndex = Math.floor(Math.random() * players.length);
-        currentPair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
-        document.getElementById('setup-screen').classList.add('hidden');
-        document.getElementById('reveal-screen').classList.remove('hidden');
-        updateTurn();
-    }
+    window.triggerGameStart = function() {
+        get(ref(db, 'rooms/' + myRoom + '/players')).then((snap) => {
+            const playerIds = Object.keys(snap.val());
+            const impIdx = Math.floor(Math.random() * playerIds.length);
+            const item = items[Math.floor(Math.random() * items.length)];
 
-    function updateTurn() {
-        document.getElementById('turn-name').innerText = players[currentIndex];
-        document.getElementById('word-display').classList.add('hidden');
-        document.getElementById('reveal-btn').classList.remove('hidden');
-    }
+            update(ref(db, 'rooms/' + myRoom), {
+                status: 'playing',
+                gameState: {
+                    impostorId: playerIds[impIdx],
+                    word: item.word,
+                    hint: item.hint
+                }
+            });
+        });
+    };
 
-    function toggleWord() {
-        const isImpostor = currentIndex === impostorIndex;
-        const text = document.getElementById('word-text');
-        text.innerText = isImpostor ? currentPair.impostor : currentPair.normal;
-        text.style.color = isImpostor ? 'var(--danger)' : 'var(--success)';
-        document.getElementById('word-display').classList.remove('hidden');
-        document.getElementById('reveal-btn').classList.add('hidden');
-    }
+    window.revealMyRole = function() {
+        const state = window.currentGameState;
+        if (!state) return;
+        
+        const isImp = myId === state.impostorId;
+        const roleLabel = document.getElementById('role-label');
+        const roleWord = document.getElementById('role-word');
+        
+        roleLabel.innerText = isImp ? "Jsi IMPOSTOR. Kategorie:" : "Jsi CIVILISTA. Předmět:";
+        roleWord.innerText = isImp ? state.hint : state.word;
+        roleWord.className = `text-5xl font-black mb-8 tracking-tighter ${isImp ? 'text-rose-500' : 'text-emerald-400'}`;
+        
+        document.getElementById('reveal-controls').classList.add('hidden');
+        document.getElementById('role-info').classList.remove('hidden');
+    };
 
-    function nextTurn() {
-        currentIndex++;
-        if (currentIndex < players.length) updateTurn();
-        else {
-            document.getElementById('reveal-screen').classList.add('hidden');
-            document.getElementById('play-screen').classList.remove('hidden');
-        }
+    function showScreen(id) {
+        ['screen-login', 'screen-lobby', 'screen-game'].forEach(s => {
+            document.getElementById(s).classList.add('hidden');
+        });
+        document.getElementById(id).classList.remove('hidden');
     }
 </script>
 </body>
